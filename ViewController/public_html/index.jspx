@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<jsp:root xmlns:jsp="http://java.sun.com/JSP/Page" version="2.1"
+          xmlns:f="http://java.sun.com/jsf/core"
+          xmlns:h="http://java.sun.com/jsf/html"
+          xmlns:af="http://xmlns.oracle.com/adf/faces/rich">
+  <jsp:directive.page contentType="text/html;charset=UTF-8"/>
+  <f:view>
+    <af:document id="d1">
+      <af:form id="f1">
+        <af:panelCollection>
+        <af:table value="#{tableBean.dataModel}" var="row" fetchSize="10"
+                  autoHeightRows="10" contentDelivery="immediate"
+                  filterModel="#{tableBean.dataModel.filterModel}">
+        <af:column sortProperty="employeeId" filterable="true" sortable="true" headerText="EmployeeId">
+          <h:outputText value="#{row.employeeId}" />
+          </af:column>
+          <af:column sortProperty="lastName" filterable="true" sortable="true" headerText="LastName">
+          <h:outputText value="#{row.lastName}" />
+          </af:column>
+        </af:table>
+        </af:panelCollection>
+      </af:form>
+    </af:document>
+  </f:view>
+</jsp:root>
