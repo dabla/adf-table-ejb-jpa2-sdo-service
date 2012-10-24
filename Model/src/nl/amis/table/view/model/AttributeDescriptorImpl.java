@@ -10,8 +10,9 @@ import java.util.List;
 import java.util.Set;
 
 import oracle.adf.view.rich.model.AttributeDescriptor;
+import oracle.adf.view.rich.model.ColumnDescriptor;
 
-public class AttributeDescriptorImpl extends AttributeDescriptor {
+public class AttributeDescriptorImpl extends ColumnDescriptor {
   private static final Set<AttributeDescriptor.Operator> BOOLEAN_OPERATORS =
     new HashSet<AttributeDescriptor.Operator>(3);
   {
@@ -173,15 +174,19 @@ public class AttributeDescriptorImpl extends AttributeDescriptor {
     return required;
   }
 
-  /*public int getWidth() {
-      System.out.println("getWidth: ");
-      return 0;
-    }
+  public int getWidth() {
+    System.out.println("getWidth: 0");
+    return 0;
+  }
 
-    public String getAlign() {
-      System.out.println("getAlign: ");
-      return "left";
-    }*/
+  public String getAlign() {
+    System.out.println("getAlign: ");
+    if (getType().isAssignableFrom(Date.class) ||
+        getType().isAssignableFrom(Number.class)) {
+      return "right";
+    }
+    return "left";
+  }
 
 
   public String toString() {
