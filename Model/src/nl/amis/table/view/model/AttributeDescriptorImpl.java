@@ -12,13 +12,17 @@ import java.util.Set;
 import oracle.adf.view.rich.model.AttributeDescriptor;
 
 public class AttributeDescriptorImpl extends AttributeDescriptor {
-  private static final Set<AttributeDescriptor.Operator> BOOLEAN_OPERATORS = new HashSet<AttributeDescriptor.Operator>(3); {
+  private static final Set<AttributeDescriptor.Operator> BOOLEAN_OPERATORS =
+    new HashSet<AttributeDescriptor.Operator>(3);
+  {
     BOOLEAN_OPERATORS.add(new OperatorImpl(""));
     BOOLEAN_OPERATORS.add(new OperatorImpl("Equals"));
     BOOLEAN_OPERATORS.add(new OperatorImpl("Not Equals"));
   }
-  
-  private static final Set<AttributeDescriptor.Operator> DATE_NUMBER_OPERATORS = new HashSet<AttributeDescriptor.Operator>(8); {
+
+  private static final Set<AttributeDescriptor.Operator> DATE_NUMBER_OPERATORS =
+    new HashSet<AttributeDescriptor.Operator>(8);
+  {
     DATE_NUMBER_OPERATORS.add(new OperatorImpl(""));
     DATE_NUMBER_OPERATORS.add(new OperatorImpl("Equals"));
     DATE_NUMBER_OPERATORS.add(new OperatorImpl("Not Equals"));
@@ -28,8 +32,10 @@ public class AttributeDescriptorImpl extends AttributeDescriptor {
     DATE_NUMBER_OPERATORS.add(new OperatorImpl("Less Than Equals"));
     DATE_NUMBER_OPERATORS.add(new OperatorImpl("Between"));
   }
-                                                                                                                        
-  private static final Set<AttributeDescriptor.Operator> STRING_OPERATORS = new HashSet<AttributeDescriptor.Operator>(8); {
+
+  private static final Set<AttributeDescriptor.Operator> STRING_OPERATORS =
+    new HashSet<AttributeDescriptor.Operator>(8);
+  {
     STRING_OPERATORS.add(new OperatorImpl(""));
     STRING_OPERATORS.add(new OperatorImpl("Equals"));
     STRING_OPERATORS.add(new OperatorImpl("Not Equals"));
@@ -39,7 +45,7 @@ public class AttributeDescriptorImpl extends AttributeDescriptor {
     STRING_OPERATORS.add(new OperatorImpl("Contains"));
     STRING_OPERATORS.add(new OperatorImpl("Does not Contain"));
   }
-                                                                                                                   
+
   public class OperatorImpl extends AttributeDescriptor.Operator {
     private final String label;
 
@@ -78,12 +84,12 @@ public class AttributeDescriptorImpl extends AttributeDescriptor {
       return 1;
     }
   }
-                                                                                                                   
+
   private final String name;
   private final boolean readOnly;
   private final boolean required;
   private final Class implementation;
-  
+
   public AttributeDescriptorImpl(final Property property) {
     this.name = property.getName();
     this.readOnly = property.isReadOnly();
@@ -98,6 +104,14 @@ public class AttributeDescriptorImpl extends AttributeDescriptor {
 
   public AttributeDescriptor.ComponentType getComponentType() {
     System.out.println("getComponentType: ");
+    if (isReadOnly()) {
+      return AttributeDescriptor.ComponentType.selectOneChoice;
+    }
+
+    if (getType().isAssignableFrom(Date.class)) {
+      return AttributeDescriptor.ComponentType.inputDate;
+    }
+
     return AttributeDescriptor.ComponentType.inputText;
   }
 
@@ -113,12 +127,12 @@ public class AttributeDescriptorImpl extends AttributeDescriptor {
 
   public int getLength() {
     System.out.println("getLength: ");
-    return -1;
+    return 0;
   }
 
   public int getMaximumLength() {
     System.out.println("getMaximumLength: ");
-    return -1;
+    return 0;
   }
 
   public Object getModel() {
@@ -133,14 +147,14 @@ public class AttributeDescriptorImpl extends AttributeDescriptor {
 
   public Set<AttributeDescriptor.Operator> getSupportedOperators() {
     System.out.println("getSupportedOperators: ");
-    
-    if (getType().isAssignableFrom(Date.class) || getType().isAssignableFrom(Number.class)) {
+
+    if (getType().isAssignableFrom(Date.class) ||
+        getType().isAssignableFrom(Number.class)) {
       return DATE_NUMBER_OPERATORS;
-    }
-    else if (getType().isAssignableFrom(String.class)) {
+    } else if (getType().isAssignableFrom(String.class)) {
       return STRING_OPERATORS;
     }
-    
+
     return BOOLEAN_OPERATORS;
   }
 
