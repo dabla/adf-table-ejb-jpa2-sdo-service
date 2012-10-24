@@ -1,16 +1,45 @@
 package nl.amis.table.view.model;
 
-
 import commonj.sdo.Property;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import oracle.adf.view.rich.model.AttributeDescriptor;
 
-
 public class AttributeDescriptorImpl extends AttributeDescriptor {
+  private static final Set<AttributeDescriptor.Operator> BOOLEAN_OPERATORS = new HashSet<AttributeDescriptor.Operator>(3); {
+    BOOLEAN_OPERATORS.add(new OperatorImpl(""));
+    BOOLEAN_OPERATORS.add(new OperatorImpl("Equals"));
+    BOOLEAN_OPERATORS.add(new OperatorImpl("Not Equals"));
+  }
+  
+  private static final Set<AttributeDescriptor.Operator> DATE_NUMBER_OPERATORS = new HashSet<AttributeDescriptor.Operator>(8); {
+    DATE_NUMBER_OPERATORS.add(new OperatorImpl(""));
+    DATE_NUMBER_OPERATORS.add(new OperatorImpl("Equals"));
+    DATE_NUMBER_OPERATORS.add(new OperatorImpl("Not Equals"));
+    DATE_NUMBER_OPERATORS.add(new OperatorImpl("Greater Than"));
+    DATE_NUMBER_OPERATORS.add(new OperatorImpl("Less Than"));
+    DATE_NUMBER_OPERATORS.add(new OperatorImpl("Greater Than Equals"));
+    DATE_NUMBER_OPERATORS.add(new OperatorImpl("Less Than Equals"));
+    DATE_NUMBER_OPERATORS.add(new OperatorImpl("Between"));
+  }
+                                                                                                                        
+  private static final Set<AttributeDescriptor.Operator> STRING_OPERATORS = new HashSet<AttributeDescriptor.Operator>(8); {
+    STRING_OPERATORS.add(new OperatorImpl(""));
+    STRING_OPERATORS.add(new OperatorImpl("Equals"));
+    STRING_OPERATORS.add(new OperatorImpl("Not Equals"));
+    STRING_OPERATORS.add(new OperatorImpl("Like"));
+    STRING_OPERATORS.add(new OperatorImpl("Starts With"));
+    STRING_OPERATORS.add(new OperatorImpl("Ends  With"));
+    STRING_OPERATORS.add(new OperatorImpl("Contains"));
+    STRING_OPERATORS.add(new OperatorImpl("Does not Contain"));
+  }
+                                                                                                                   
   public class OperatorImpl extends AttributeDescriptor.Operator {
     private final String label;
 
@@ -49,11 +78,11 @@ public class AttributeDescriptorImpl extends AttributeDescriptor {
       return 1;
     }
   }
-  
-  private String name = null;
-  private boolean readOnly = false;
-  private boolean required = false;
-  private Class implementation = null;
+                                                                                                                   
+  private final String name;
+  private final boolean readOnly;
+  private final boolean required;
+  private final Class implementation;
   
   public AttributeDescriptorImpl(final Property property) {
     this.name = property.getName();
@@ -103,29 +132,16 @@ public class AttributeDescriptorImpl extends AttributeDescriptor {
   }
 
   public Set<AttributeDescriptor.Operator> getSupportedOperators() {
-    final Set<AttributeDescriptor.Operator> operators = new HashSet<AttributeDescriptor.Operator>(8);
-    operators.add(new OperatorImpl(""));
-    operators.add(new OperatorImpl("Equals"));
-    operators.add(new OperatorImpl("Not Equals"));
+    System.out.println("getSupportedOperators: ");
     
     if (getType().isAssignableFrom(Date.class) || getType().isAssignableFrom(Number.class)) {
-      operators.add(new OperatorImpl("Greater Than"));
-      operators.add(new OperatorImpl("Less Than"));
-      operators.add(new OperatorImpl("Greater Than Equals"));
-      operators.add(new OperatorImpl("Less Than Equals"));
-      operators.add(new OperatorImpl("Between"));
+      return DATE_NUMBER_OPERATORS;
     }
     else if (getType().isAssignableFrom(String.class)) {
-      operators.add(new OperatorImpl("Like"));
-      operators.add(new OperatorImpl("Starts With"));
-      operators.add(new OperatorImpl("Ends  With"));
-      operators.add(new OperatorImpl("Contains"));
-      operators.add(new OperatorImpl("Does not Contain"));
+      return STRING_OPERATORS;
     }
     
-    System.out.println("getSupportedOperators: " + operators);
-
-    return operators;
+    return BOOLEAN_OPERATORS;
   }
 
   public Class getType() {

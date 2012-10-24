@@ -86,14 +86,14 @@ public class FilterableQueryDescriptorImpl<S extends BaseDataObject> extends Fil
 
   public Map<String, Object> getUIHints() {
     final Map<String, Object> uiHints = new HashMap<String, Object>();
-    /*uiHints.put(QueryDescriptor.UIHINT_AUTO_EXECUTE, Boolean.FALSE);
-    uiHints.put(QueryDescriptor.UIHINT_DEFAULT, Boolean.TRUE);
-    uiHints.put(QueryDescriptor.UIHINT_IMMUTABLE, Boolean.TRUE);
-    uiHints.put(QueryDescriptor.UIHINT_MODE, QueryMode.BASIC);
-    //uiHints.put(QueryDescriptor.UIHINT_NAME, Boolean.TRUE);
-    //uiHints.put(QueryDescriptor.UIHINT_RESULTS_COMPONENT_ID, Boolean.TRUE);
-    uiHints.put(QueryDescriptor.UIHINT_SAVE_RESULTS_LAYOUT, Boolean.FALSE);
-    uiHints.put(QueryDescriptor.UIHINT_SHOW_IN_LIST, Boolean.TRUE);*/
+            uiHints.put(QueryDescriptor.UIHINT_AUTO_EXECUTE, Boolean.TRUE);
+            uiHints.put(QueryDescriptor.UIHINT_DEFAULT, Boolean.TRUE);
+            uiHints.put(QueryDescriptor.UIHINT_IMMUTABLE, Boolean.FALSE);
+                uiHints.put(QueryDescriptor.UIHINT_MODE, QueryMode.ADVANCED);
+                //uiHints.put(QueryDescriptor.UIHINT_MODE, QueryMode.BASIC);
+            uiHints.put(QueryDescriptor.UIHINT_NAME, "A");
+            uiHints.put(QueryDescriptor.UIHINT_SAVE_RESULTS_LAYOUT, Boolean.TRUE);
+            uiHints.put(QueryDescriptor.UIHINT_SHOW_IN_LIST, Boolean.TRUE);
     System.out.println("getUIHints: " + uiHints);
     return uiHints;
   }
