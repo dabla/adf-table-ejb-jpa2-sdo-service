@@ -7,18 +7,59 @@
   <f:view>
     <af:document id="d1">
       <af:form id="f1">
-        <af:panelCollection>
-        <af:table value="#{tableBean.dataModel}" var="row" fetchSize="10"
-                  autoHeightRows="10" contentDelivery="immediate"
-                  filterModel="#{tableBean.dataModel.filterModel}">
-        <af:column sortProperty="employeeId" filterable="true" sortable="true" headerText="EmployeeId">
-          <h:outputText value="#{row.employeeId}" />
-          </af:column>
-          <af:column sortProperty="lastName" filterable="true" sortable="true" headerText="LastName">
-          <h:outputText value="#{row.lastName}" />
-          </af:column>
-        </af:table>
-        </af:panelCollection>
+        <af:panelGroupLayout layout="vertical" id="pgl1">
+          <af:panelHeader text="Employees" id="ph1">
+            <!--af:query id="search" rows="3" headerText="Search" disclosed="true"
+                        value="#{viewScope.tableBean.dataModel.filterModel}"
+                        model="#{viewScope.tableBean.dataModel.queryModel}"/-->
+            <af:quickQuery label="Search" id="search"
+                           value="#{viewScope.tableBean.dataModel.filterModel}" >
+            </af:quickQuery>
+          </af:panelHeader>
+          <af:table value="#{viewScope.tableBean.dataModel}" var="row" fetchSize="10"
+                    autoHeightRows="10" contentDelivery="immediate"
+                    filterVisible="true" width="100%"
+                    filterModel="#{viewScope.tableBean.dataModel.filterModel}"
+                    partialTriggers="::search">
+            <af:column sortProperty="employeeId" filterable="true"
+                       sortable="true" headerText="EmployeeId">
+              <h:outputText value="#{row.employeeId}"/>-
+              <jsp:scriptlet>out.println(System.currentTimeMillis());</jsp:scriptlet>
+            </af:column>
+            <af:column sortProperty="firstName" filterable="true" sortable="true"
+                       headerText="FirstName">
+              <h:outputText value="#{row.firstName}"/>
+            </af:column>
+            <af:column sortProperty="lastName" filterable="true" sortable="true"
+                       headerText="LastName">
+              <h:outputText value="#{row.lastName}"/>
+            </af:column>
+            <af:column sortProperty="commissionPct" filterable="true" sortable="true"
+                       headerText="CommissionPct">
+              <h:outputText value="#{row.commissionPct}"/>
+            </af:column>
+            <af:column sortProperty="hireDate" filterable="true" sortable="true"
+                       headerText="HireDate">
+              <h:outputText value="#{row.hireDate}"/>
+            </af:column>
+            <af:column sortProperty="jobId" filterable="true" sortable="true"
+                       headerText="JobId">
+              <h:outputText value="#{row.jobId}"/>
+            </af:column>
+            <af:column sortProperty="managerId" filterable="true" sortable="true"
+                       headerText="ManagerId">
+              <h:outputText value="#{row.managerId}"/>
+            </af:column>
+            <af:column sortProperty="phoneNumber" filterable="true" sortable="true"
+                       headerText="PhoneNumber">
+              <h:outputText value="#{row.phoneNumber}"/>
+            </af:column>
+            <af:column sortProperty="salary" filterable="true" sortable="true"
+                       headerText="Salary">
+              <h:outputText value="#{row.salary}"/>
+            </af:column>
+          </af:table>
+        </af:panelGroupLayout>
       </af:form>
     </af:document>
   </f:view>

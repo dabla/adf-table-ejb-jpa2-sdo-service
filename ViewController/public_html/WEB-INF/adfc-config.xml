@@ -3,6 +3,6 @@
   <managed-bean id="__1">
     <managed-bean-name id="__4">tableBean</managed-bean-name>
     <managed-bean-class id="__2">nl.amis.table.view.bean.EmployeesBean</managed-bean-class>
-    <managed-bean-scope id="__3">request</managed-bean-scope>
+    <managed-bean-scope id="__3">view</managed-bean-scope>
   </managed-bean>
 </adfc-config>

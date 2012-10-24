@@ -49,11 +49,10 @@ public class EmployeesBean {
     System.out.println("context = " + context);
     dataModel =
         new PagedListDataModel<EmployeesSDO, Employees>((Service)context.lookup("EjbSdoService-HrSessionEJB#nl.amis.sdo.jpa.services.HrSessionEJB"),
-                                                        Employees.class, 10);
+                                                        EmployeesSDO.class, Employees.class, 10);
   }
 
   public DataModel getDataModel() {
-    System.out.println("getDataModel: " + dataModel);
     return dataModel;
   }
 }

@@ -36,7 +36,6 @@ import java.util.List;
     * Return the number of items in the full dataset.
     */
    public int getDatasetSize() {
-     System.out.println("datasetSize: " + datasetSize);
      return datasetSize;
    }
 

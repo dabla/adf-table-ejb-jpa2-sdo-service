@@ -9,11 +9,21 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.swing.event.ChangeEvent;
+
+import javax.swing.event.ChangeListener;
+
 import nl.amis.sdo.jpa.entities.BaseDataObject;
 import nl.amis.sdo.jpa.entities.BaseEntity;
+import nl.amis.sdo.jpa.services.AbstractService;
 import nl.amis.sdo.jpa.services.Service;
 
 import oracle.adf.view.rich.model.FilterableQueryDescriptor;
+
+import oracle.adf.view.rich.model.QueryModel;
 
 import oracle.jbo.common.service.types.FindControl;
 import oracle.jbo.common.service.types.FindCriteria;
@@ -43,16 +53,19 @@ import org.apache.myfaces.trinidad.model.SortCriterion;
  * a DataPage object that provides info on the full size of the dataset.
  */
 // http://wiki.apache.org/myfaces/WorkingWithLargeTables
-public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntity<S>> extends CollectionModel {
-
+public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntity<S>> extends CollectionModel implements ChangeListener {
+  protected static final Logger logger = Logger.getLogger(PagedListDataModel.class.getName());
   private int pageSize;
-  private int rowIndex;
+  private int rowIndex = 0;
   private int lastStartRow = -1;
   private DataPage<S> page;
   private DataPage<S> lastPage;
   private final Service service;
-  private final Class<T> implementation;
-  private final FilterableQueryDescriptorImpl filterModel;
+  private final Class<T> entityImplementation;
+  private final FilterableQueryDescriptor filterModel;
+  private final ObservableBoolean changed = new ObservableBoolean(this);
+  
+  //private final QueryModel queryModel;
   private List<SortCriterion> sortCriteria = new ArrayList<SortCriterion>(1);
 
   /*
@@ -61,40 +74,48 @@ public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntit
           */
 
   public PagedListDataModel(final Service service,
-                            final Class<T> implementation,
+                            final Class<S> dataObjectImplementation,
+                            final Class<T> entityImplementation,
                             final int pageSize) {
     super();
     this.service = service;
-    this.implementation = implementation;
-    this.filterModel = new FilterableQueryDescriptorImpl();
+    this.entityImplementation = entityImplementation;
+    this.filterModel = new FilterableQueryDescriptorImpl<S>(dataObjectImplementation, changed);
     this.pageSize = pageSize;
-    this.rowIndex = -1;
+    //this.queryModel = new QueryModelImpl();
+    this.rowIndex = 0;
     this.page = null;
   }
 
-  public void reset() {
-    this.rowIndex = -1;
+  public void invalidate() {
+    System.out.println("invalidate");
+    this.rowIndex = 0;
     this.lastStartRow = -1;
     this.page = null;
     this.lastPage = null;
+    this.changed.setValue(false);
   }
 
-  public void setSortCriteria(List<SortCriterion> sortCriteria) {
-    System.out.println("setSortCriteria: " + sortCriteria);
+  public void setSortCriteria(final List<SortCriterion> sortCriteria) {
+    logger.log(Level.FINEST, "setSortCriteria: {0}", sortCriteria);
     this.sortCriteria = sortCriteria;
-    reset();
+    this.changed.setValue(true);
   }
 
   public List<SortCriterion> getSortCriteria() {
-    System.out.println("getSortCriteria: " + sortCriteria);
+    logger.log(Level.FINEST, "getSortCriteria: {0}", sortCriteria);
     return sortCriteria;
   }
 
   public FilterableQueryDescriptor getFilterModel() {
-    System.out.println("getFilterModel: " + filterModel);
-    reset();
     return filterModel;
   }
+  
+  /*public QueryModel getQueryModel() {
+    System.out.println("getQueryModel: " + queryModel);
+    reset();
+    return queryModel;
+  }*/
 
   /**
    * Not used in this class; data is fetched via a callback to the fetchData
@@ -107,6 +128,7 @@ public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntit
 
   @Override
   public int getRowIndex() {
+    logger.log(Level.FINEST, "getRowIndex: {0}", rowIndex);
     return rowIndex;
   }
 
@@ -117,7 +139,7 @@ public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntit
    */
   @Override
   public void setRowIndex(int index) {
-    System.out.println("setRowIndex: " + index);
+    logger.log(Level.FINEST, "setRowIndex: {0}", index);
     rowIndex = index;
   }
 
@@ -136,21 +158,61 @@ public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntit
    * the current rowIndex row; see getRowData.
    */
   private DataPage<S> getPage() {
-    if (page != null)
-      return page;
-
-    int rowIndex = getRowIndex();
-    int startRow = rowIndex;
-    if (rowIndex == -1) {
-      // even when no row is selected, we still need a page
-      // object so that we know the amount of data available.
-      startRow = 0;
+    // ensure page exists; if rowIndex is beyond dataset size, then
+    // we should still get back a DataPage object with the dataset size
+    // in it...
+    if ((page == null) || (getRowIndex() <= page.getStartRow()) || (getRowIndex() >= (page.getStartRow() + page.getData().size()))) {
+      page = suggestFetchPage((getRowIndex() == -1 ? 0 : getRowIndex()), pageSize);
     }
-
-    // invoke method on enclosing class
-    page = suggestFetchPage(startRow, pageSize);
+    
     return page;
   }
+  
+  /**
+     * Return the object corresponding to the current rowIndex. If the DataPage
+     * object currently cached doesn't include that index then fetchPage is
+     * called to retrieve the appropriate page.
+     */
+    /*@Override
+    public Object getRowData() {
+      System.out.println("getRowData");
+      if (rowIndex < 0) {
+        throw new IllegalArgumentException("Invalid rowIndex for PagedListDataModel; not within page");
+      }
+
+      // ensure page exists; if rowIndex is beyond dataset size, then
+      // we should still get back a DataPage object with the dataset size
+      // in it...
+      if (page == null) {
+        page = suggestFetchPage(rowIndex, pageSize);
+      }
+
+      // Check if rowIndex is equal to startRow,
+      // useful for dynamic sorting on pages
+
+      if (rowIndex == page.getStartRow()) {
+        page = suggestFetchPage(rowIndex, pageSize);
+      }
+
+      int datasetSize = page.getDatasetSize();
+      int startRow = page.getStartRow();
+      int nRows = page.getData().size();
+      int endRow = startRow + nRows;
+
+      if (rowIndex >= datasetSize) {
+        throw new IllegalArgumentException("Invalid rowIndex");
+      }
+
+      if (rowIndex < startRow) {
+        page = suggestFetchPage(rowIndex, pageSize);
+        startRow = page.getStartRow();
+      } else if (rowIndex >= endRow) {
+        page = suggestFetchPage(rowIndex, pageSize);
+        startRow = page.getStartRow();
+      }
+
+      return page.getData().get(rowIndex - startRow);
+    }*/
 
   /**
    * Return the object corresponding to the current rowIndex. If the DataPage
@@ -159,59 +221,28 @@ public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntit
    */
   @Override
   public Object getRowData() {
-    System.out.println("getRowData");
-    if (rowIndex < 0) {
-      throw new IllegalArgumentException("Invalid rowIndex for PagedListDataModel; not within page");
-    }
+    System.out.println("getRowData: " + changed.booleanValue());
+    
+    logger.finest("getRowData");
 
-    // ensure page exists; if rowIndex is beyond dataset size, then
-    // we should still get back a DataPage object with the dataset size
-    // in it...
-    if (page == null) {
-      page = suggestFetchPage(rowIndex, pageSize);
-    }
-
-    // Check if rowIndex is equal to startRow,
-    // useful for dynamic sorting on pages
-
-    if (rowIndex == page.getStartRow()) {
-      page = suggestFetchPage(rowIndex, pageSize);
-    }
-
-    int datasetSize = page.getDatasetSize();
-    int startRow = page.getStartRow();
-    int nRows = page.getData().size();
-    int endRow = startRow + nRows;
-
-    if (rowIndex >= datasetSize) {
-      throw new IllegalArgumentException("Invalid rowIndex");
-    }
-
-    if (rowIndex < startRow) {
-      page = suggestFetchPage(rowIndex, pageSize);
-      startRow = page.getStartRow();
-    } else if (rowIndex >= endRow) {
-      page = suggestFetchPage(rowIndex, pageSize);
-      startRow = page.getStartRow();
-    }
-
-    return page.getData().get(rowIndex - startRow);
+    final DataPage<S> page = getPage();
+    return page.getData().get(rowIndex - page.getStartRow());
   }
 
   @Override
   public Object getWrappedData() {
-    return page.getData();
+    return getPage().getData();
   }
 
   /**
    * Return true if the rowIndex value is currently set to a value that
    * matches some element in the dataset. Note that it may match a row that is
    * not in the currently cached DataPage; if so then when getRowData is
-   * called the required DataPage will be fetched by calling fetchData.
+   * called the requiredType DataPage will be fetched by calling fetchData.
    */
   @Override
   public boolean isRowAvailable() {
-    System.out.println("isRowAvailable");
+    logger.finest("isRowAvailable");
     if ((getPage() == null) || (getRowIndex() < 0) ||
         (getRowIndex() >= getPage().getDatasetSize())) {
       return false;
@@ -230,7 +261,7 @@ public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntit
    * @return
    */
   public DataPage<S> suggestFetchPage(int startRow, int pageSize) {
-    System.out.println("suggestFetchPage: " + startRow + ", " + pageSize);
+    logger.log(Level.FINEST, "suggestFetchPage: {0}, {1}", new Object[]{startRow,pageSize});
     if (this.lastStartRow == startRow) {
       return this.lastPage;
     }
@@ -241,56 +272,64 @@ public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntit
   }
 
   public DataPage<S> fetchPage(int startRow, int pageSize) {
-    System.out.println("getDataPage: " + startRow + ", " + pageSize);
+    System.out.println("fetchPage is being performed: " + startRow + ", " + pageSize);
+    
+    logger.log(Level.FINEST, "fetchPage: {0}, {1}", new Object[]{startRow,pageSize});
     final FindCriteria findCriteria =
       (FindCriteria)DataFactory.INSTANCE.create(TypeHelper.INSTANCE.getType(FindCriteria.class));
     findCriteria.setFetchStart(0);
     findCriteria.setFetchSize(-1);
     findCriteria.setExcludeAttribute(false);
 
-    System.out.println("filterModel: " + filterModel);
+    logger.log(Level.FINEST, "filterModel: {0}", getFilterModel());
+    
+    final List<Object> item =
+      new ArrayList<Object>(getFilterModel().getFilterCriteria().entrySet().size());
 
-    if ((filterModel != null) && (filterModel.getFilterCriteria() != null) &&
-        !filterModel.getFilterCriteria().entrySet().isEmpty()) {
-      final List<Object> item =
-        new ArrayList<Object>(filterModel.getFilterCriteria().entrySet().size());
+    if ((getFilterModel() != null) && (getFilterModel().getFilterCriteria() != null) &&
+        !getFilterModel().getFilterCriteria().entrySet().isEmpty()) {
 
       for (final Map.Entry<String, Object> entry :
-           filterModel.getFilterCriteria().entrySet()) {
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>");
-        System.out.println("key: " + entry.getKey());
-        System.out.println("value: " + entry.getValue());
-        System.out.println("<<<<<<<<<<<<<<<<<<<<<<<<<<");
+           getFilterModel().getFilterCriteria().entrySet()) {
+        logger.log(Level.FINEST, "key: {0}", entry.getKey());
+        logger.log(Level.FINEST, "value: {0}", entry.getValue());
 
         if ((entry.getValue() != null) &&
             (entry.getValue().toString().trim().length() > 0)) {
-          final ViewCriteriaItem viewCriteriaItem =
-            (ViewCriteriaItem)DataFactory.INSTANCE.create(TypeHelper.INSTANCE.getType(ViewCriteriaItem.class));
-          viewCriteriaItem.setConjunction("And");
-          viewCriteriaItem.setUpperCaseCompare(true);
-          viewCriteriaItem.setAttribute(entry.getKey());
-          viewCriteriaItem.setOperator("like");
           final List<Object> value = new ArrayList<Object>(1);
           value.add(entry.getValue());
-          viewCriteriaItem.setValue(value);
+          final ViewCriteriaItem viewCriteriaItem = toViewCriteriaItem(entry.getKey(), value);
+          logger.log(Level.FINEST, "viewCriteriaItem: {0}", viewCriteriaItem);
           item.add(viewCriteriaItem);
-
-          System.out.println("viewCriteriaItem added: " + viewCriteriaItem);
         }
       }
-
-      if (!item.isEmpty()) {
-        findCriteria.setFilter((ViewCriteria)DataFactory.INSTANCE.create(TypeHelper.INSTANCE.getType(ViewCriteria.class)));
-        findCriteria.getFilter().setGroup(new ArrayList(1));
-        final ViewCriteriaRow viewCriteriaRow =
-          (ViewCriteriaRow)DataFactory.INSTANCE.create(TypeHelper.INSTANCE.getType(ViewCriteriaRow.class));
-        viewCriteriaRow.setUpperCaseCompare(true);
-        viewCriteriaRow.setItem(item);
-        findCriteria.getFilter().getGroup().add(viewCriteriaRow);
+    }
+    
+    System.out.println("currentCriterion: " + getFilterModel().getCurrentCriterion());
+    
+    if ((getFilterModel().getCurrentCriterion() != null) && !getFilterModel().getCurrentCriterion().getValues().isEmpty()) {
+      System.out.println(">>> value: " + getFilterModel().getCurrentCriterion().getValues().get(0));
+      if (getFilterModel().getCurrentCriterion().getValues().get(0).toString().trim().length() > 0)
+      {
+      final ViewCriteriaItem viewCriteriaItem = toViewCriteriaItem(getFilterModel().getCurrentCriterion().getAttribute().getName(), getFilterModel().getCurrentCriterion().getValues());
+      System.out.println(">>> viewCriteriaItem: " + viewCriteriaItem);
+      logger.log(Level.FINEST, "viewCriteriaItem: {0}", viewCriteriaItem);
+      item.add(viewCriteriaItem);
       }
     }
+    
+    if (!item.isEmpty()) {
+      findCriteria.setFilter((ViewCriteria)DataFactory.INSTANCE.create(TypeHelper.INSTANCE.getType(ViewCriteria.class)));
+      findCriteria.getFilter().setGroup(new ArrayList(1));
+      final ViewCriteriaRow viewCriteriaRow =
+        (ViewCriteriaRow)DataFactory.INSTANCE.create(TypeHelper.INSTANCE.getType(ViewCriteriaRow.class));
+      viewCriteriaRow.setConjunction("And");
+      viewCriteriaRow.setUpperCaseCompare(true);
+      viewCriteriaRow.setItem(item);
+      findCriteria.getFilter().getGroup().add(viewCriteriaRow);
+    }
 
-    System.out.println("sortCriteria: " + getSortCriteria());
+    logger.log(Level.FINEST, "sortCriteria: {0}", getSortCriteria());
 
     if (getSortCriteria() != null) {
       final List<SortAttribute> sortAttributes =
@@ -299,9 +338,7 @@ public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntit
       for (SortCriterion sortCriterion : getSortCriteria()) {
         final SortAttribute sortAttribute =
           (SortAttribute)DataFactory.INSTANCE.create(TypeHelper.INSTANCE.getType(SortAttribute.class));
-        System.out.println(">>> sortCriterion: " +
-                           sortCriterion.getProperty() + " = " +
-                           sortCriterion.isAscending());
+        logger.log(Level.FINEST, "sortCriterion: {0}, {1}", new Object[]{sortCriterion.getProperty(),sortCriterion.isAscending()});
         sortAttribute.setName(sortCriterion.getProperty());
         sortAttribute.setDescending(!sortCriterion.isAscending());
         sortAttributes.add(sortAttribute);
@@ -319,16 +356,27 @@ public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntit
     findControl.setRetrieveAllTranslations(false);
 
     final int size =
-      service.count(implementation, findCriteria, findControl).intValue();
+      service.count(entityImplementation, findCriteria, findControl).intValue();
 
-    System.out.println("size: " + size);
+    logger.log(Level.FINEST, "size: {0}", size);
 
     findCriteria.setFetchStart(startRow);
     findCriteria.setFetchSize(pageSize);
 
     return new DataPage<S>(size, startRow,
-                           service.find(implementation, findCriteria,
+                           service.find(entityImplementation, findCriteria,
                                         findControl));
+  }
+  
+  protected ViewCriteriaItem toViewCriteriaItem(final String name, final List value) {
+    final ViewCriteriaItem viewCriteriaItem =
+      (ViewCriteriaItem)DataFactory.INSTANCE.create(TypeHelper.INSTANCE.getType(ViewCriteriaItem.class));
+    viewCriteriaItem.setConjunction("And");
+    viewCriteriaItem.setUpperCaseCompare(true);
+    viewCriteriaItem.setAttribute(name);
+    viewCriteriaItem.setOperator("like");
+    viewCriteriaItem.setValue(value);
+    return viewCriteriaItem;
   }
 
   public String toString() {
@@ -346,7 +394,7 @@ public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntit
       final Object key =
         (getRowData() != null ? ((S)getRowData()).toEntity().getId() : null);
 
-      System.out.println("getRowKey: " + key);
+      logger.log(Level.FINEST, "getRowKey: {0}", key);
 
       return key;
     }
@@ -355,7 +403,7 @@ public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntit
   }
 
   public void setRowKey(Object key) {
-    System.out.println("setRowKey: " + key);
+    logger.log(Level.FINEST, "setRowKey: {0}", key);
 
     if (key != null) {
       for (int index = 0; index < page.getData().size(); index++) {
@@ -364,6 +412,14 @@ public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntit
           return;
         }
       }
+    }
+  }
+  
+  public void stateChanged(final ChangeEvent e) {
+    System.out.println("stateChanged: " + ((ObservableBoolean)e.getSource()).booleanValue());
+    
+    if (((ObservableBoolean)e.getSource()).booleanValue()) {
+      invalidate();
     }
   }
 }
