@@ -15,11 +15,13 @@ import oracle.adf.view.rich.model.ConjunctionCriterion;
 import oracle.adf.view.rich.model.Criterion;
 import oracle.adf.view.rich.model.FilterableQueryDescriptor;
 import oracle.adf.view.rich.model.QueryDescriptor;
+import oracle.adf.view.rich.model.QueryModel;
 
 
 public class FilterableQueryDescriptorImpl<S extends BaseDataObject> extends FilterableQueryDescriptor {
   private AttributeCriterion attributeCriterion = null;
   private final ConjunctionCriterion conjunctionCriterion;
+  private final QueryModel queryModel;
   private final Map<String, Object> filterCriteria;
   
   private final class ObservableHashMap extends HashMap<String, Object> {
@@ -47,11 +49,17 @@ public class FilterableQueryDescriptorImpl<S extends BaseDataObject> extends Fil
   public FilterableQueryDescriptorImpl(final Class<S> implementation, final ObservableBoolean changed) {
     this.conjunctionCriterion = new ConjunctionCriterionImpl(DataFactory.INSTANCE.create(TypeHelper.INSTANCE.getType(implementation)).getInstanceProperties(), changed);
     this.filterCriteria = new ObservableHashMap(conjunctionCriterion.getCriterionList(), changed);
+    this.queryModel = new QueryModelImpl(conjunctionCriterion);
   }
 
   public Map<String, Object> getFilterCriteria() {
     System.out.println("getFilterCriteria: " + filterCriteria);
     return filterCriteria;
+  }
+  
+  public QueryModel getQueryModel() {
+    System.out.println("getQueryModel: " + queryModel);
+    return queryModel;
   }
 
   public void setFilterCriteria(Map<String, Object> map) {

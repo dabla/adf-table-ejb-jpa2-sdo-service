@@ -11,7 +11,7 @@
           <af:panelHeader text="Employees" id="ph1">
             <!--af:query id="search" rows="3" headerText="Search" disclosed="true"
                         value="#{viewScope.tableBean.dataModel.filterModel}"
-                        model="#{viewScope.tableBean.dataModel.queryModel}"/-->
+                        model="#{viewScope.tableBean.dataModel.filterModel.queryModel}"/-->
             <af:quickQuery label="Search" id="search"
                            value="#{viewScope.tableBean.dataModel.filterModel}" >
             </af:quickQuery>

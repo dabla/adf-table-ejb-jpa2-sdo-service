@@ -40,6 +40,7 @@ public class AttributeCriterionImpl extends AttributeCriterion {
     super();
     values = new ObservableArrayList(changed);
     attributeDescriptor = new AttributeDescriptorImpl(property);
+    operator = attributeDescriptor.getSupportedOperators().iterator().next();
   }
 
   public AttributeDescriptor getAttribute() {

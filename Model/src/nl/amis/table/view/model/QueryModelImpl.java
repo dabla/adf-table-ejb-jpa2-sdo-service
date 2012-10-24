@@ -5,12 +5,15 @@ import java.util.List;
 import java.util.Map;
 
 import oracle.adf.view.rich.model.AttributeDescriptor;
+import oracle.adf.view.rich.model.ConjunctionCriterion;
 import oracle.adf.view.rich.model.QueryDescriptor;
 import oracle.adf.view.rich.model.QueryModel;
 
 public class QueryModelImpl extends QueryModel {
-  public QueryModelImpl() {
-    super();
+  //private QueryDescriptor queryDescriptor = null;
+  
+  public QueryModelImpl(final ConjunctionCriterion conjunctionCriterion) {
+    //queryDescriptor = new QueryDescriptorImpl(conjunctionCriterion);
   }
 
   public QueryDescriptor create(String string,

@@ -8,22 +8,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.event.ChangeEvent;
-
 import javax.swing.event.ChangeListener;
 
 import nl.amis.sdo.jpa.entities.BaseDataObject;
 import nl.amis.sdo.jpa.entities.BaseEntity;
-import nl.amis.sdo.jpa.services.AbstractService;
 import nl.amis.sdo.jpa.services.Service;
 
 import oracle.adf.view.rich.model.FilterableQueryDescriptor;
-
-import oracle.adf.view.rich.model.QueryModel;
 
 import oracle.jbo.common.service.types.FindControl;
 import oracle.jbo.common.service.types.FindCriteria;
@@ -82,9 +77,10 @@ public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntit
     this.entityImplementation = entityImplementation;
     this.filterModel = new FilterableQueryDescriptorImpl<S>(dataObjectImplementation, changed);
     this.pageSize = pageSize;
-    //this.queryModel = new QueryModelImpl();
     this.rowIndex = 0;
     this.page = null;
+    
+    //oracle.adfinternal.view.faces.model.AdfListELResolver d;
   }
 
   public void invalidate() {
@@ -110,12 +106,6 @@ public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntit
   public FilterableQueryDescriptor getFilterModel() {
     return filterModel;
   }
-  
-  /*public QueryModel getQueryModel() {
-    System.out.println("getQueryModel: " + queryModel);
-    reset();
-    return queryModel;
-  }*/
 
   /**
    * Not used in this class; data is fetched via a callback to the fetchData
