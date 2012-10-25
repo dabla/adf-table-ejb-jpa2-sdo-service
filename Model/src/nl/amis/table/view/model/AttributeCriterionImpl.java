@@ -36,12 +36,11 @@ public class AttributeCriterionImpl extends AttributeCriterion {
     }
     
     @Override
-    public Object set(final int index, final Object value) {
-      final boolean modified = !value.equals(get(index));
-      System.out.println(attributeDescriptor.getName() + "-SET: " + index + ", is: " + value + ", was:" + get(index) + ", changed: " + changed + " (" + modified + ")");
-      final Object result = super.set(index, value);
-      changed.setValue(changed.booleanValue() || modified);
-      return result;
+    public Object set(final int index, Object value) {
+      if (value == null) value = ""; /*((value == null) && (get(index) != null)) ||*/
+      System.out.println(attributeDescriptor.getName() + "-SET: " + index + ", is: " + value + ", was:" + get(index) + ", changed: " + changed + " (" + !value.equals(get(index)) + ")");
+      changed.setValue(changed.booleanValue() || !value.equals(get(index)));
+      return super.set(index, value);
     }
   }
 
