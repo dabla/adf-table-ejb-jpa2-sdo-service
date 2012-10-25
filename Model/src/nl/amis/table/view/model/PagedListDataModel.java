@@ -22,6 +22,7 @@ import nl.amis.sdo.jpa.services.Service;
 
 import oracle.adf.view.rich.model.AttributeCriterion;
 import oracle.adf.view.rich.model.ConjunctionCriterion;
+import oracle.adf.view.rich.model.Criterion;
 import oracle.adf.view.rich.model.FilterableQueryDescriptor;
 
 import oracle.jbo.common.service.types.FindControl;
@@ -88,7 +89,7 @@ public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntit
   }
 
   public void invalidate() {
-    //System.out.println("invalidate");
+    System.out.println("invalidate");
     this.rowIndex = 0;
     this.lastStartRow = -1;
     this.page = null;
@@ -161,52 +162,6 @@ public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntit
     
     return page;
   }
-  
-  /**
-     * Return the object corresponding to the current rowIndex. If the DataPage
-     * object currently cached doesn't include that index then fetchPage is
-     * called to retrieve the appropriate page.
-     */
-    /*@Override
-    public Object getRowData() {
-      System.out.println("getRowData");
-      if (rowIndex < 0) {
-        throw new IllegalArgumentException("Invalid rowIndex for PagedListDataModel; not within page");
-      }
-
-      // ensure page exists; if rowIndex is beyond dataset size, then
-      // we should still get back a DataPage object with the dataset size
-      // in it...
-      if (page == null) {
-        page = suggestFetchPage(rowIndex, pageSize);
-      }
-
-      // Check if rowIndex is equal to startRow,
-      // useful for dynamic sorting on pages
-
-      if (rowIndex == page.getStartRow()) {
-        page = suggestFetchPage(rowIndex, pageSize);
-      }
-
-      int datasetSize = page.getDatasetSize();
-      int startRow = page.getStartRow();
-      int nRows = page.getData().size();
-      int endRow = startRow + nRows;
-
-      if (rowIndex >= datasetSize) {
-        throw new IllegalArgumentException("Invalid rowIndex");
-      }
-
-      if (rowIndex < startRow) {
-        page = suggestFetchPage(rowIndex, pageSize);
-        startRow = page.getStartRow();
-      } else if (rowIndex >= endRow) {
-        page = suggestFetchPage(rowIndex, pageSize);
-        startRow = page.getStartRow();
-      }
-
-      return page.getData().get(rowIndex - startRow);
-    }*/
 
   /**
    * Return the object corresponding to the current rowIndex. If the DataPage
@@ -278,7 +233,7 @@ public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntit
     final List<Object> item =
       new ArrayList<Object>(getFilterModel().getFilterCriteria().entrySet().size());
 
-    if ((getFilterModel() != null) && (getFilterModel().getFilterCriteria() != null) &&
+    if ((getFilterModel().getFilterCriteria() != null) &&
         !getFilterModel().getFilterCriteria().entrySet().isEmpty()) {
 
       for (final Map.Entry<String, Object> entry :
@@ -299,7 +254,7 @@ public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntit
     
     System.out.println("currentCriterion: " + getFilterModel().getCurrentCriterion());
     
-    if (!getFilterModel().getCurrentCriterion().getValues().isEmpty()) {
+    /*if (!getFilterModel().getCurrentCriterion().getValues().isEmpty()) {
       System.out.println(">>> value: " + getFilterModel().getCurrentCriterion().getValues().get(0));
       if (getFilterModel().getCurrentCriterion().getValues().get(0).toString().trim().length() > 0)
       {
@@ -307,6 +262,19 @@ public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntit
       System.out.println(">>> viewCriteriaItem: " + viewCriteriaItem);
       logger.log(Level.FINEST, "viewCriteriaItem: {0}", viewCriteriaItem);
       item.add(viewCriteriaItem);
+      }
+    }*/
+
+    if (!getFilterModel().getConjunctionCriterion().getCriterionList().isEmpty()) {
+      for (final Criterion criterion :
+           getFilterModel().getConjunctionCriterion().getCriterionList()) {
+        final AttributeCriterion attributeCriterion = (AttributeCriterion)criterion;
+        if (String.valueOf(attributeCriterion.getValues().get(0)).trim().length() > 0) {
+          final ViewCriteriaItem viewCriteriaItem = toViewCriteriaItem(attributeCriterion);
+          System.out.println(">>> viewCriteriaItem: " + viewCriteriaItem);
+          logger.log(Level.FINEST, "viewCriteriaItem: {0}", viewCriteriaItem);
+          item.add(viewCriteriaItem);
+        }
       }
     }
     

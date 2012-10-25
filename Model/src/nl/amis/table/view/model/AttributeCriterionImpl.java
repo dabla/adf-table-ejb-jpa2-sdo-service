@@ -87,27 +87,27 @@ public class AttributeCriterionImpl extends AttributeCriterion {
   }
 
   public boolean hasDependentCriterion(final int index) {
-    System.out.println("hasDependentCriterion: " + index);
+    //System.out.println("hasDependentCriterion: " + index);
     return false;
   }
 
   public void setMatchCase(final boolean matchCase) {
-    System.out.println("setMatchCase: " + matchCase);
+    //System.out.println("setMatchCase: " + matchCase);
     this.matchCase = matchCase;
   }
 
   public boolean getMatchCase() {
-    System.out.println("getMatchCase: " + matchCase);
+    //System.out.println("getMatchCase: " + matchCase);
     return matchCase;
   }
 
   public void setRequiredType(final RequiredType requiredType) {
-    System.out.println("setRequiredType: " + requiredType);
+    //System.out.println("setRequiredType: " + requiredType);
     this.requiredType = requiredType;
   }
 
   public RequiredType getRequiredType() {
-    System.out.println("getRequiredType: " + requiredType);
+    //System.out.println("getRequiredType: " + requiredType);
     return requiredType;
   }
 }

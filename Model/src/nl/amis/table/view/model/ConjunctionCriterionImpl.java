@@ -25,27 +25,27 @@ public class ConjunctionCriterionImpl extends ConjunctionCriterion {
   }
   
   public void setConjunction(ConjunctionCriterion.Conjunction conjunction) {
-    System.out.println("setConjunction: " + conjunction);
+    //System.out.println("setConjunction: " + conjunction);
     this.conjunction = conjunction;
   }
 
   public ConjunctionCriterion.Conjunction getConjunction() {
-    System.out.println("getConjunction: " + conjunction);
+    //System.out.println("getConjunction: " + conjunction);
     return conjunction;
   }
 
   public List<Criterion> getCriterionList() {
-    System.out.println("getCriterionList: " + criterionList);
+    //System.out.println("getCriterionList: " + criterionList);
     return criterionList;
   }
 
-  public Object getKey(Criterion criterion) {
-    System.out.println("getKey: " + criterion);
+  public Object getKey(final Criterion criterion) {
+    //System.out.println("getKey: " + criterion);
     return criterionList.indexOf(criterion);
   }
 
   public Criterion getCriterion(Object object) {
-    System.out.println("getCriterion: " + object);
+    //System.out.println("getCriterion: " + object);
     int index = 0;
     if (object instanceof String) {
         index = Integer.valueOf((String)object);

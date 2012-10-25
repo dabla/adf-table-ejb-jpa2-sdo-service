@@ -65,17 +65,17 @@ public class FilterableQueryDescriptorImpl<S extends BaseDataObject> extends Fil
   }
 
   public void setFilterCriteria(Map<String, Object> filterCriteria) {
-    System.out.println("setFilterCriteria: " + filterCriteria);
+    //System.out.println("setFilterCriteria: " + filterCriteria);
     this.filterCriteria = filterCriteria;
   }
   
   public Map<String, Object> getFilterCriteria() {
-    System.out.println("getFilterCriteria: " + filterCriteria);
+    //System.out.println("getFilterCriteria: " + filterCriteria);
     return filterCriteria;
   }
   
   public QueryModel getQueryModel() {
-    System.out.println("getQueryModel: " + queryModel);
+    //System.out.println("getQueryModel: " + queryModel);
     return queryModel;
   }
 
@@ -84,35 +84,35 @@ public class FilterableQueryDescriptorImpl<S extends BaseDataObject> extends Fil
   }
 
   public ConjunctionCriterion getConjunctionCriterion() {
-    System.out.println("getConjunctionCriterion: " + conjunctionCriterion);
+    //System.out.println("getConjunctionCriterion: " + conjunctionCriterion);
     return conjunctionCriterion;
   }
 
   public String getName() {
-    System.out.println("getName: ");
+    //System.out.println("getName: ");
     return null;
   }
 
   public Map<String, Object> getUIHints() {
-    System.out.println("getUIHints: " + uiHints);
+    //System.out.println("getUIHints: " + uiHints);
     return uiHints;
   }
   
   public void addCriterion(String string) {
-    System.out.println("addCriterion: " + string);
+    //System.out.println("addCriterion: " + string);
   }
 
   public void removeCriterion(oracle.adf.view.rich.model.Criterion criterion) {
-    System.out.println("removeCriterion: " + criterion);
+    //System.out.println("removeCriterion: " + criterion);
   }
 
   public AttributeCriterion getCurrentCriterion() {
-    System.out.println("getCurrentCriterion: " + attributeCriterion);
+    //System.out.println("getCurrentCriterion: " + attributeCriterion);
     return attributeCriterion;
   }
 
   public void setCurrentCriterion(AttributeCriterion attributeCriterion) {
-    System.out.println("setCurrentCriterion: " + attributeCriterion);
+    //System.out.println("setCurrentCriterion: " + attributeCriterion);
     this.attributeCriterion = attributeCriterion;
   }
 }
