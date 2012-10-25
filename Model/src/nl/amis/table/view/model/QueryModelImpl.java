@@ -1,19 +1,22 @@
 package nl.amis.table.view.model;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import oracle.adf.view.rich.model.AttributeDescriptor;
-import oracle.adf.view.rich.model.ConjunctionCriterion;
 import oracle.adf.view.rich.model.QueryDescriptor;
 import oracle.adf.view.rich.model.QueryModel;
 
+
 public class QueryModelImpl extends QueryModel {
-  //private QueryDescriptor queryDescriptor = null;
+  private QueryDescriptor queryDescriptor = null;
+  private final List<AttributeDescriptor> attributes;
   
-  public QueryModelImpl(final ConjunctionCriterion conjunctionCriterion) {
-    //queryDescriptor = new QueryDescriptorImpl(conjunctionCriterion);
+  public QueryModelImpl(final QueryDescriptor queryDescriptor) {
+    this.queryDescriptor = queryDescriptor;
+    this.attributes = new ArrayList<AttributeDescriptor>();
   }
 
   public QueryDescriptor create(String string,
@@ -27,8 +30,8 @@ public class QueryModelImpl extends QueryModel {
   }
 
   public List<AttributeDescriptor> getAttributes() {
-    System.out.println("getAttributes");
-    return Collections.emptyList();
+    System.out.println("getAttributes: " + this.attributes);
+    return this.attributes;
   }
 
   public List<QueryDescriptor> getSystemQueries() {
@@ -47,6 +50,7 @@ public class QueryModelImpl extends QueryModel {
 
   public void setCurrentDescriptor(QueryDescriptor queryDescriptor) {
     System.out.println("setCurrentDescriptor: " + queryDescriptor);
+    this.queryDescriptor = queryDescriptor;
   }
 
   public void update(QueryDescriptor queryDescriptor,

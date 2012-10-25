@@ -4,6 +4,8 @@ package nl.amis.table.view.model;
 import commonj.sdo.helper.DataFactory;
 import commonj.sdo.helper.TypeHelper;
 
+import java.lang.reflect.ParameterizedType;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -18,6 +20,8 @@ import nl.amis.sdo.jpa.entities.BaseDataObject;
 import nl.amis.sdo.jpa.entities.BaseEntity;
 import nl.amis.sdo.jpa.services.Service;
 
+import oracle.adf.view.rich.model.AttributeCriterion;
+import oracle.adf.view.rich.model.ConjunctionCriterion;
 import oracle.adf.view.rich.model.FilterableQueryDescriptor;
 
 import oracle.jbo.common.service.types.FindControl;
@@ -56,7 +60,7 @@ public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntit
   private DataPage<S> page;
   private DataPage<S> lastPage;
   private final Service service;
-  private final Class<T> entityImplementation;
+  private final Class<T> implementation;
   private final FilterableQueryDescriptor filterModel;
   private final ObservableBoolean changed = new ObservableBoolean(this);
   
@@ -69,13 +73,13 @@ public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntit
           */
 
   public PagedListDataModel(final Service service,
-                            final Class<S> dataObjectImplementation,
-                            final Class<T> entityImplementation,
-                            final int pageSize) {
+                            final Class<S> implementation,
+                            final int pageSize) throws NoSuchMethodException,
+                                                       ClassNotFoundException {
     super();
     this.service = service;
-    this.entityImplementation = entityImplementation;
-    this.filterModel = new FilterableQueryDescriptorImpl<S>(dataObjectImplementation, changed);
+    this.implementation = (Class<T>)Class.forName(implementation.getName().replaceFirst("SDO", ""));  // dirty solution, should find a beter way to resolve entity class
+    this.filterModel = new FilterableQueryDescriptorImpl<S>(implementation, changed);
     this.pageSize = pageSize;
     this.rowIndex = 0;
     this.page = null;
@@ -84,7 +88,7 @@ public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntit
   }
 
   public void invalidate() {
-    System.out.println("invalidate");
+    //System.out.println("invalidate");
     this.rowIndex = 0;
     this.lastStartRow = -1;
     this.page = null;
@@ -211,8 +215,6 @@ public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntit
    */
   @Override
   public Object getRowData() {
-    System.out.println("getRowData: " + changed.booleanValue());
-    
     logger.finest("getRowData");
 
     final DataPage<S> page = getPage();
@@ -288,7 +290,7 @@ public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntit
             (entry.getValue().toString().trim().length() > 0)) {
           final List<Object> value = new ArrayList<Object>(1);
           value.add(entry.getValue());
-          final ViewCriteriaItem viewCriteriaItem = toViewCriteriaItem(entry.getKey(), value);
+          final ViewCriteriaItem viewCriteriaItem = toViewCriteriaItem(entry.getKey(), value, "like");
           logger.log(Level.FINEST, "viewCriteriaItem: {0}", viewCriteriaItem);
           item.add(viewCriteriaItem);
         }
@@ -297,11 +299,11 @@ public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntit
     
     System.out.println("currentCriterion: " + getFilterModel().getCurrentCriterion());
     
-    if ((getFilterModel().getCurrentCriterion() != null) && !getFilterModel().getCurrentCriterion().getValues().isEmpty()) {
+    if (!getFilterModel().getCurrentCriterion().getValues().isEmpty()) {
       System.out.println(">>> value: " + getFilterModel().getCurrentCriterion().getValues().get(0));
       if (getFilterModel().getCurrentCriterion().getValues().get(0).toString().trim().length() > 0)
       {
-      final ViewCriteriaItem viewCriteriaItem = toViewCriteriaItem(getFilterModel().getCurrentCriterion().getAttribute().getName(), getFilterModel().getCurrentCriterion().getValues());
+      final ViewCriteriaItem viewCriteriaItem = toViewCriteriaItem(getFilterModel().getCurrentCriterion());
       System.out.println(">>> viewCriteriaItem: " + viewCriteriaItem);
       logger.log(Level.FINEST, "viewCriteriaItem: {0}", viewCriteriaItem);
       item.add(viewCriteriaItem);
@@ -346,7 +348,7 @@ public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntit
     findControl.setRetrieveAllTranslations(false);
 
     final int size =
-      service.count(entityImplementation, findCriteria, findControl).intValue();
+      service.count(implementation, findCriteria, findControl).intValue();
 
     logger.log(Level.FINEST, "size: {0}", size);
 
@@ -354,17 +356,22 @@ public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntit
     findCriteria.setFetchSize(pageSize);
 
     return new DataPage<S>(size, startRow,
-                           service.find(entityImplementation, findCriteria,
+                           service.find(implementation, findCriteria,
                                         findControl));
   }
   
-  protected ViewCriteriaItem toViewCriteriaItem(final String name, final List value) {
+  protected ViewCriteriaItem toViewCriteriaItem(final AttributeCriterion criterion) {
+    return toViewCriteriaItem(criterion.getAttribute().getName(), criterion.getValues(), criterion.getOperator().toString());
+  }
+  
+  protected ViewCriteriaItem toViewCriteriaItem(final String name, final List value, final String operator) {
     final ViewCriteriaItem viewCriteriaItem =
       (ViewCriteriaItem)DataFactory.INSTANCE.create(TypeHelper.INSTANCE.getType(ViewCriteriaItem.class));
-    viewCriteriaItem.setConjunction("And");
+    //viewCriteriaItem.setConjunction("And");
+    viewCriteriaItem.setConjunction(getFilterModel().getConjunctionCriterion().getConjunction().equals(ConjunctionCriterion.Conjunction.AND) ? "And" : "Or");
     viewCriteriaItem.setUpperCaseCompare(true);
     viewCriteriaItem.setAttribute(name);
-    viewCriteriaItem.setOperator("like");
+    viewCriteriaItem.setOperator(operator);
     viewCriteriaItem.setValue(value);
     return viewCriteriaItem;
   }

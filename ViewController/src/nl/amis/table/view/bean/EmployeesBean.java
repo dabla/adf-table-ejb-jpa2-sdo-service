@@ -11,11 +11,11 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
-import nl.amis.sdo.jpa.entities.Employees;
 import nl.amis.sdo.jpa.entities.EmployeesSDO;
-import nl.amis.sdo.jpa.services.HrSessionEJB;
 import nl.amis.sdo.jpa.services.Service;
 import nl.amis.table.view.model.PagedListDataModel;
+
+import oracle.adfinternal.view.faces.renderkit.rich.SimpleSelectOneRenderer;
 
 
 public class EmployeesBean {
@@ -37,7 +37,8 @@ public class EmployeesBean {
 
   private DataModel dataModel = null;
 
-  public EmployeesBean() throws NamingException {
+  public EmployeesBean() throws NamingException, NoSuchMethodException,
+                                ClassNotFoundException {
     System.out.println("Tablebean initialized");
 
     final Hashtable env = new Hashtable();
@@ -47,9 +48,12 @@ public class EmployeesBean {
     env.put(Context.PROVIDER_URL, "t3://pc100016989:7001");
     final Context context = new InitialContext(env);
     System.out.println("context = " + context);
+    
+    //oracle.adfinternal.view.faces.renderkit.rich.QueryRenderer d;
+    //SimpleSelectOneRenderer e;
     dataModel =
-        new PagedListDataModel<EmployeesSDO, Employees>((Service)context.lookup("EjbSdoService-HrSessionEJB#nl.amis.sdo.jpa.services.HrSessionEJB"),
-                                                        EmployeesSDO.class, Employees.class, 10);
+        new PagedListDataModel((Service)context.lookup("EjbSdoService-HrSessionEJB#nl.amis.sdo.jpa.services.HrSessionEJB"),
+                                                        EmployeesSDO.class, 10);
   }
 
   public DataModel getDataModel() {

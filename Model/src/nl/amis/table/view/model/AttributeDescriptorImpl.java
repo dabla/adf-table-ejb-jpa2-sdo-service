@@ -16,7 +16,6 @@ public class AttributeDescriptorImpl extends ColumnDescriptor {
   private static final Set<AttributeDescriptor.Operator> BOOLEAN_OPERATORS =
     new HashSet<AttributeDescriptor.Operator>(3);
   {
-    BOOLEAN_OPERATORS.add(new OperatorImpl(""));
     BOOLEAN_OPERATORS.add(new OperatorImpl("Equals"));
     BOOLEAN_OPERATORS.add(new OperatorImpl("Not Equals"));
   }
@@ -24,7 +23,6 @@ public class AttributeDescriptorImpl extends ColumnDescriptor {
   private static final Set<AttributeDescriptor.Operator> DATE_NUMBER_OPERATORS =
     new HashSet<AttributeDescriptor.Operator>(8);
   {
-    DATE_NUMBER_OPERATORS.add(new OperatorImpl(""));
     DATE_NUMBER_OPERATORS.add(new OperatorImpl("Equals"));
     DATE_NUMBER_OPERATORS.add(new OperatorImpl("Not Equals"));
     DATE_NUMBER_OPERATORS.add(new OperatorImpl("Greater Than"));
@@ -37,7 +35,6 @@ public class AttributeDescriptorImpl extends ColumnDescriptor {
   private static final Set<AttributeDescriptor.Operator> STRING_OPERATORS =
     new HashSet<AttributeDescriptor.Operator>(8);
   {
-    STRING_OPERATORS.add(new OperatorImpl(""));
     STRING_OPERATORS.add(new OperatorImpl("Equals"));
     STRING_OPERATORS.add(new OperatorImpl("Not Equals"));
     STRING_OPERATORS.add(new OperatorImpl("Like"));
@@ -49,19 +46,41 @@ public class AttributeDescriptorImpl extends ColumnDescriptor {
 
   public class OperatorImpl extends AttributeDescriptor.Operator {
     private final String label;
+    private final int operand;
 
     public OperatorImpl(final String label) {
       this.label = label;
+      
+      if ("Between".equals(label)) {
+        operand = 2;
+      }
+      else if ("In".equals(label) || "Not In".equals(label)) {
+        operand = -1;
+      }
+      else {
+        operand = 1;
+      }
     }
 
     public String getLabel() {
-      System.out.println("getLabel: " + label);
       return label;
     }
 
     public Object getValue() {
-      System.out.println("getValue: ");
       return null;
+    }
+    
+    @Override
+    public String toString() {
+      /*if ("Like".equalsIgnoreCase(getLabel())) return "like";
+      if ("Equals".equalsIgnoreCase(getLabel())) return "=";
+      if ("Not Equals".equalsIgnoreCase(getLabel())) return "<>";
+      if ("Greater Than".equalsIgnoreCase(getLabel())) return ">";
+      if ("Less Than".equalsIgnoreCase(getLabel())) return "<";
+      if ("Greater Than Equals".equalsIgnoreCase(getLabel())) return ">=";
+      if ("Less Than Equals".equalsIgnoreCase(getLabel())) return "<=";*/
+      //if ("Between".equalsIgnoreCase(getLabel())) return "><";
+      return "like";
     }
 
     /**
@@ -70,19 +89,7 @@ public class AttributeDescriptorImpl extends ColumnDescriptor {
      * @return an int
      */
     public int getOperandCount() {
-
-      if ("Between".equals(getLabel())) {
-        System.out.println("getOperandCount: 2");
-        return 2;
-      }
-      if ("In".equals(getLabel()) || "Not In".equals(getLabel())) {
-        System.out.println("getOperandCount: -1");
-        return -1;
-      }
-
-      System.out.println("getOperandCount: 1");
-
-      return 1;
+      return operand;
     }
   }
 
@@ -97,14 +104,13 @@ public class AttributeDescriptorImpl extends ColumnDescriptor {
     this.required = !property.isNullable();
     this.implementation = property.getType().getInstanceClass();
 
-    System.out.println("SDO Property: " + property.getName() + ", " +
+    /*System.out.println("SDO Property: " + property.getName() + ", " +
                        property.getType().getName() + ", " +
                        property.getOpposite() + ", " + property.getDefault() +
-                       ", " + property.isReadOnly());
+                       ", " + property.isReadOnly());*/
   }
 
   public AttributeDescriptor.ComponentType getComponentType() {
-    System.out.println("getComponentType: ");
     if (isReadOnly()) {
       return AttributeDescriptor.ComponentType.selectOneChoice;
     }
@@ -112,43 +118,35 @@ public class AttributeDescriptorImpl extends ColumnDescriptor {
     if (getType().isAssignableFrom(Date.class)) {
       return AttributeDescriptor.ComponentType.inputDate;
     }
-
+    
     return AttributeDescriptor.ComponentType.inputText;
   }
 
   public String getDescription() {
-    System.out.println("getDescription: ");
     return "";
   }
 
   public String getLabel() {
-    System.out.println("getLabel: " + name);
     return name;
   }
 
   public int getLength() {
-    System.out.println("getLength: ");
     return 0;
   }
 
   public int getMaximumLength() {
-    System.out.println("getMaximumLength: ");
     return 0;
   }
 
   public Object getModel() {
-    System.out.println("getModel: ");
     return null;
   }
 
   public String getName() {
-    System.out.println("getName: " + name);
     return name;
   }
 
   public Set<AttributeDescriptor.Operator> getSupportedOperators() {
-    System.out.println("getSupportedOperators: ");
-
     if (getType().isAssignableFrom(Date.class) ||
         getType().isAssignableFrom(Number.class)) {
       return DATE_NUMBER_OPERATORS;
@@ -160,34 +158,28 @@ public class AttributeDescriptorImpl extends ColumnDescriptor {
   }
 
   public Class getType() {
-    System.out.println("getType: " + this.implementation);
     return this.implementation;
   }
 
   public boolean isReadOnly() {
-    System.out.println("isReadOnly: " + readOnly);
     return readOnly;
   }
 
   public boolean isRequired() {
-    System.out.println("isRequired: " + required);
-    return required;
+    return false;
   }
 
   public int getWidth() {
-    System.out.println("getWidth: 0");
     return 0;
   }
 
   public String getAlign() {
-    System.out.println("getAlign: ");
     if (getType().isAssignableFrom(Date.class) ||
         getType().isAssignableFrom(Number.class)) {
       return "right";
     }
     return "left";
   }
-
 
   public String toString() {
     return new StringBuilder(getClass().getName()).append("@").append(hashCode()).append("[name=").append(getName()).append("]").toString();

@@ -4,19 +4,19 @@ package nl.amis.table.view.model;
 import commonj.sdo.Property;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import oracle.adf.view.rich.model.AttributeCriterion;
 import oracle.adf.view.rich.model.AttributeDescriptor;
-import oracle.adf.view.rich.model.Criterion;
 
 
 public class AttributeCriterionImpl extends AttributeCriterion {
   private final List values;
   private final AttributeDescriptor attributeDescriptor;
+  private final Map<String,AttributeDescriptor.Operator> operators;
   private AttributeDescriptor.Operator operator = null;
   private RequiredType requiredType = RequiredType.OPTIONAL;
   private boolean matchCase = false;
@@ -29,10 +29,19 @@ public class AttributeCriterionImpl extends AttributeCriterion {
       add("");
     }
     
+    @Override
+    public Object get(final int index) {
+      System.out.println(attributeDescriptor.getName() + "-GET: " + index + ", value: " + super.get(index));
+      return super.get(index);
+    }
+    
+    @Override
     public Object set(final int index, final Object value) {
-      changed.setValue(changed.booleanValue() || !value.equals(get(index)));
-      System.out.println("SET: " + index + ", is: " + value + ", was:" + get(index) + ", changed: " + changed);
-      return super.set(index, value);
+      final boolean modified = !value.equals(get(index));
+      System.out.println(attributeDescriptor.getName() + "-SET: " + index + ", is: " + value + ", was:" + get(index) + ", changed: " + changed + " (" + modified + ")");
+      final Object result = super.set(index, value);
+      changed.setValue(changed.booleanValue() || modified);
+      return result;
     }
   }
 
@@ -40,17 +49,22 @@ public class AttributeCriterionImpl extends AttributeCriterion {
     super();
     values = new ObservableArrayList(changed);
     attributeDescriptor = new AttributeDescriptorImpl(property);
-    operator = attributeDescriptor.getSupportedOperators().iterator().next();
+    operators = new HashMap<String,AttributeDescriptor.Operator>(attributeDescriptor.getSupportedOperators().size());
+    
+    final Iterator<AttributeDescriptor.Operator> i = attributeDescriptor.getSupportedOperators().iterator();
+    
+    while(i.hasNext()) {
+      final AttributeDescriptor.Operator o = i.next();
+      operators.put(o.getLabel(), o);
+    }
   }
 
   public AttributeDescriptor getAttribute() {
-    System.out.println("getAttribute: " + attributeDescriptor);
     return attributeDescriptor;
   }
 
   public Map<String, AttributeDescriptor.Operator> getOperators() {
-    System.out.println("getOperators: ");
-    return Collections.emptyMap();
+    return operators;
   }
 
   public List<? extends Object> getValues() {
@@ -59,11 +73,10 @@ public class AttributeCriterionImpl extends AttributeCriterion {
   }
 
   public boolean isRemovable() {
-    System.out.println("isRemovable: ");
     return false;
   }
 
-  public void setOperator(AttributeDescriptor.Operator operator) {
+  public void setOperator(final AttributeDescriptor.Operator operator) {
     System.out.println("setOperator: " + operator);
     this.operator = operator;
   }
@@ -73,12 +86,12 @@ public class AttributeCriterionImpl extends AttributeCriterion {
     return operator;
   }
 
-  public boolean hasDependentCriterion(int index) {
+  public boolean hasDependentCriterion(final int index) {
     System.out.println("hasDependentCriterion: " + index);
     return false;
   }
 
-  public void setMatchCase(boolean matchCase) {
+  public void setMatchCase(final boolean matchCase) {
     System.out.println("setMatchCase: " + matchCase);
     this.matchCase = matchCase;
   }
@@ -88,7 +101,7 @@ public class AttributeCriterionImpl extends AttributeCriterion {
     return matchCase;
   }
 
-  public void setRequiredType(RequiredType requiredType) {
+  public void setRequiredType(final RequiredType requiredType) {
     System.out.println("setRequiredType: " + requiredType);
     this.requiredType = requiredType;
   }
