@@ -5,7 +5,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import oracle.adf.view.rich.model.AttributeCriterion;
 import oracle.adf.view.rich.model.AttributeDescriptor;
+import oracle.adf.view.rich.model.Criterion;
 import oracle.adf.view.rich.model.QueryDescriptor;
 import oracle.adf.view.rich.model.QueryModel;
 
@@ -13,10 +15,12 @@ import oracle.adf.view.rich.model.QueryModel;
 public class QueryModelImpl extends QueryModel {
   private QueryDescriptor queryDescriptor = null;
   private final List<AttributeDescriptor> attributes;
+  private final ObservableBoolean changed;
   
-  public QueryModelImpl(final QueryDescriptor queryDescriptor) {
+  public QueryModelImpl(final QueryDescriptor queryDescriptor, final ObservableBoolean changed) {
     this.queryDescriptor = queryDescriptor;
     this.attributes = new ArrayList<AttributeDescriptor>();
+    this.changed = changed;
   }
 
   public QueryDescriptor create(String string,
@@ -46,6 +50,13 @@ public class QueryModelImpl extends QueryModel {
 
   public void reset(QueryDescriptor queryDescriptor) {
     System.out.println("reset: " + queryDescriptor);
+    for(final Criterion criterion : queryDescriptor.getConjunctionCriterion().getCriterionList()) {
+      final List values = ((AttributeCriterion)criterion).getValues();
+      values.clear();
+      values.add("");
+    }
+    
+    changed.setValue(true);
   }
 
   public void setCurrentDescriptor(QueryDescriptor queryDescriptor) {

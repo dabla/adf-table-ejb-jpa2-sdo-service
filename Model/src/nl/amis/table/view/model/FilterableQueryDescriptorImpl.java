@@ -8,8 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import nl.amis.sdo.jpa.entities.BaseDataObject;
-
 import oracle.adf.view.rich.model.AttributeCriterion;
 import oracle.adf.view.rich.model.ConjunctionCriterion;
 import oracle.adf.view.rich.model.Criterion;
@@ -18,11 +16,10 @@ import oracle.adf.view.rich.model.QueryDescriptor;
 import oracle.adf.view.rich.model.QueryModel;
 
 
-public class FilterableQueryDescriptorImpl<S extends BaseDataObject> extends FilterableQueryDescriptor {
+public class FilterableQueryDescriptorImpl<S> extends FilterableQueryDescriptor {
   private AttributeCriterion attributeCriterion = null;
   private final ConjunctionCriterion conjunctionCriterion;
   private final QueryModel queryModel;
-  //private final String name;
   private final Map<String, Object> uiHints = new HashMap<String, Object>();
   private Map<String, Object> filterCriteria = null;
   
@@ -51,31 +48,25 @@ public class FilterableQueryDescriptorImpl<S extends BaseDataObject> extends Fil
   public FilterableQueryDescriptorImpl(final Class<S> implementation, final ObservableBoolean changed) {
     this.conjunctionCriterion = new ConjunctionCriterionImpl(DataFactory.INSTANCE.create(TypeHelper.INSTANCE.getType(implementation)).getInstanceProperties(), changed);
     this.filterCriteria = new ObservableHashMap(conjunctionCriterion.getCriterionList(), changed);
-    this.queryModel = new QueryModelImpl(this);
-    //this.name = name;
-    this.uiHints.put(QueryDescriptor.UIHINT_AUTO_EXECUTE, Boolean.TRUE);
+    this.queryModel = new QueryModelImpl(this, changed);
+     this.uiHints.put(QueryDescriptor.UIHINT_AUTO_EXECUTE, Boolean.TRUE);
     this.uiHints.put(QueryDescriptor.UIHINT_DEFAULT, Boolean.TRUE);
     this.uiHints.put(QueryDescriptor.UIHINT_IMMUTABLE, Boolean.FALSE);
     this.uiHints.put(QueryDescriptor.UIHINT_MODE, QueryMode.ADVANCED);
-    //this.uiHints.put(QueryDescriptor.UIHINT_MODE, QueryMode.BASIC);
-    //this.uiHints.put(QueryDescriptor.UIHINT_NAME, name);
     this.uiHints.put(QueryDescriptor.UIHINT_SAVE_RESULTS_LAYOUT, Boolean.TRUE);
     this.uiHints.put(QueryDescriptor.UIHINT_SHOW_IN_LIST, Boolean.TRUE);
     this.attributeCriterion = (AttributeCriterion)conjunctionCriterion.getCriterion(0);
   }
 
-  public void setFilterCriteria(Map<String, Object> filterCriteria) {
-    //System.out.println("setFilterCriteria: " + filterCriteria);
+  public void setFilterCriteria(final Map<String, Object> filterCriteria) {
     this.filterCriteria = filterCriteria;
   }
   
   public Map<String, Object> getFilterCriteria() {
-    //System.out.println("getFilterCriteria: " + filterCriteria);
     return filterCriteria;
   }
   
   public QueryModel getQueryModel() {
-    //System.out.println("getQueryModel: " + queryModel);
     return queryModel;
   }
 
@@ -84,17 +75,14 @@ public class FilterableQueryDescriptorImpl<S extends BaseDataObject> extends Fil
   }
 
   public ConjunctionCriterion getConjunctionCriterion() {
-    //System.out.println("getConjunctionCriterion: " + conjunctionCriterion);
     return conjunctionCriterion;
   }
 
   public String getName() {
-    //System.out.println("getName: ");
     return null;
   }
 
   public Map<String, Object> getUIHints() {
-    //System.out.println("getUIHints: " + uiHints);
     return uiHints;
   }
   
@@ -107,12 +95,10 @@ public class FilterableQueryDescriptorImpl<S extends BaseDataObject> extends Fil
   }
 
   public AttributeCriterion getCurrentCriterion() {
-    //System.out.println("getCurrentCriterion: " + attributeCriterion);
     return attributeCriterion;
   }
 
   public void setCurrentCriterion(AttributeCriterion attributeCriterion) {
-    //System.out.println("setCurrentCriterion: " + attributeCriterion);
     this.attributeCriterion = attributeCriterion;
   }
 }

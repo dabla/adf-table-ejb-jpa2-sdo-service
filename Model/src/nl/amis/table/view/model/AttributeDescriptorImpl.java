@@ -9,6 +9,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.faces.component.UIComponent;
+import javax.faces.context.FacesContext;
+import javax.faces.convert.Converter;
+
+import javax.faces.convert.DateTimeConverter;
+import javax.faces.convert.NumberConverter;
+
 import oracle.adf.view.rich.model.AttributeDescriptor;
 import oracle.adf.view.rich.model.ColumnDescriptor;
 
@@ -103,11 +110,6 @@ public class AttributeDescriptorImpl extends ColumnDescriptor {
     this.readOnly = property.isReadOnly();
     this.required = !property.isNullable();
     this.implementation = property.getType().getInstanceClass();
-
-    /*System.out.println("SDO Property: " + property.getName() + ", " +
-                       property.getType().getName() + ", " +
-                       property.getOpposite() + ", " + property.getDefault() +
-                       ", " + property.isReadOnly());*/
   }
 
   public AttributeDescriptor.ComponentType getComponentType() {
@@ -150,12 +152,42 @@ public class AttributeDescriptorImpl extends ColumnDescriptor {
     if (getType().isAssignableFrom(Date.class) ||
         getType().isAssignableFrom(Number.class)) {
       return DATE_NUMBER_OPERATORS;
-    } else if (getType().isAssignableFrom(String.class)) {
+    }
+    
+    if (getType().isAssignableFrom(String.class)) {
       return STRING_OPERATORS;
     }
 
     return BOOLEAN_OPERATORS;
   }
+  
+  /*@Override
+  public Converter getConverter() {
+      if (getType().isAssignableFrom(Number.class)) {
+          return new NumberConverter();
+      }
+      
+      if (getType().isAssignableFrom(Date.class)) {
+          return new DateTimeConverter();
+      }
+      
+      return new Converter() {
+          public Object getAsObject(final FacesContext facesContext, final UIComponent uiComponent, final String string) {
+              return string;
+          }
+          public String getAsString(final FacesContext facesContext, final UIComponent uiComponent, final Object object) {
+            return (object != null ? object.toString() : null);
+          }
+      };
+  }*/
+
+  /*@Override
+  public boolean hasDefaultConverter() {
+      return !(   getComponentType() == AttributeDescriptor.ComponentType.selectManyChoice
+               || getComponentType() == AttributeDescriptor.ComponentType.selectOneChoice
+               || getComponentType() == AttributeDescriptor.ComponentType.selectOneListbox
+               || getComponentType() == AttributeDescriptor.ComponentType.selectOneRadio);
+  }*/  
 
   public Class getType() {
     return this.implementation;

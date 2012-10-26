@@ -15,8 +15,6 @@ import nl.amis.sdo.jpa.entities.EmployeesSDO;
 import nl.amis.sdo.jpa.services.Service;
 import nl.amis.table.view.model.PagedListDataModel;
 
-import oracle.adfinternal.view.faces.renderkit.rich.SimpleSelectOneRenderer;
-
 
 public class EmployeesBean {
   static {
@@ -31,29 +29,28 @@ public class EmployeesBean {
                               "nl/amis/sdo/jpa/entities/");
     XSDHelper.INSTANCE.define(loader.getResourceAsStream("nl/amis/sdo/jpa/entities/DepartmentsSDO.xsd"),
                               "nl/amis/sdo/jpa/entities/");
-    XSDHelper.INSTANCE.define(loader.getResourceAsStream("nl/amis/sdo/jpa/services/HrSessionEJBBeanWS.xsd"),
-                              "nl/amis/sdo/jpa/services/");
+    /*XSDHelper.INSTANCE.define(loader.getResourceAsStream("nl/amis/sdo/jpa/services/HrSessionEJBBeanWS.xsd"),
+                              "nl/amis/sdo/jpa/services/");*/
   }
 
   private DataModel dataModel = null;
 
-  public EmployeesBean() throws NamingException, NoSuchMethodException,
-                                ClassNotFoundException {
+  public EmployeesBean() throws NamingException {
     System.out.println("Tablebean initialized");
 
     final Hashtable env = new Hashtable();
     // WebLogic Server 10.x connection details
     env.put(Context.INITIAL_CONTEXT_FACTORY,
             "weblogic.jndi.WLInitialContextFactory");
-    env.put(Context.PROVIDER_URL, "t3://pc100016989:7001");
+    env.put(Context.PROVIDER_URL, "t3://localhost:7001");
     final Context context = new InitialContext(env);
     System.out.println("context = " + context);
-    
+
     //oracle.adfinternal.view.faces.renderkit.rich.QueryRenderer d;
     //SimpleSelectOneRenderer e;
     dataModel =
         new PagedListDataModel((Service)context.lookup("EjbSdoService-HrSessionEJB#nl.amis.sdo.jpa.services.HrSessionEJB"),
-                                                        EmployeesSDO.class, 10);
+                               EmployeesSDO.class, 10);
   }
 
   public DataModel getDataModel() {

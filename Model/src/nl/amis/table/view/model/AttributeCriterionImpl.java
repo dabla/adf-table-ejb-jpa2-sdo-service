@@ -14,7 +14,7 @@ import oracle.adf.view.rich.model.AttributeDescriptor;
 
 
 public class AttributeCriterionImpl extends AttributeCriterion {
-  private final List values;
+  private final List<? extends Object> values;
   private final AttributeDescriptor attributeDescriptor;
   private final Map<String,AttributeDescriptor.Operator> operators;
   private AttributeDescriptor.Operator operator = null;
@@ -67,7 +67,6 @@ public class AttributeCriterionImpl extends AttributeCriterion {
   }
 
   public List<? extends Object> getValues() {
-    System.out.println("getValues: " + values);
     return values;
   }
 

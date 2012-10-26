@@ -4,8 +4,6 @@ package nl.amis.table.view.model;
 import commonj.sdo.helper.DataFactory;
 import commonj.sdo.helper.TypeHelper;
 
-import java.lang.reflect.ParameterizedType;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -16,8 +14,6 @@ import java.util.logging.Logger;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import nl.amis.sdo.jpa.entities.BaseDataObject;
-import nl.amis.sdo.jpa.entities.BaseEntity;
 import nl.amis.sdo.jpa.services.Service;
 
 import oracle.adf.view.rich.model.AttributeCriterion;
@@ -53,7 +49,7 @@ import org.apache.myfaces.trinidad.model.SortCriterion;
  * a DataPage object that provides info on the full size of the dataset.
  */
 // http://wiki.apache.org/myfaces/WorkingWithLargeTables
-public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntity<S>> extends CollectionModel implements ChangeListener {
+public class PagedListDataModel<S> extends CollectionModel implements ChangeListener {
   protected static final Logger logger = Logger.getLogger(PagedListDataModel.class.getName());
   private int pageSize;
   private int rowIndex = 0;
@@ -61,7 +57,7 @@ public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntit
   private DataPage<S> page;
   private DataPage<S> lastPage;
   private final Service service;
-  private final Class<T> implementation;
+  private final Class<S> implementation;
   private final FilterableQueryDescriptor filterModel;
   private final ObservableBoolean changed = new ObservableBoolean(this);
   
@@ -75,11 +71,10 @@ public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntit
 
   public PagedListDataModel(final Service service,
                             final Class<S> implementation,
-                            final int pageSize) throws NoSuchMethodException,
-                                                       ClassNotFoundException {
+                            final int pageSize) {
     super();
     this.service = service;
-    this.implementation = (Class<T>)Class.forName(implementation.getName().replaceFirst("SDO", ""));  // dirty solution, should find a beter way to resolve entity class
+    this.implementation = implementation;  // dirty solution, should find a beter way to resolve entity class
     this.filterModel = new FilterableQueryDescriptorImpl<S>(implementation, changed);
     this.pageSize = pageSize;
     this.rowIndex = 0;
@@ -357,7 +352,7 @@ public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntit
   public Object getRowKey() {
     if (isRowAvailable()) {
       final Object key =
-        (getRowData() != null ? ((S)getRowData()).toEntity().getId() : null);
+        (getRowData() != null ? ((S)getRowData()).hashCode() : null);
 
       logger.log(Level.FINEST, "getRowKey: {0}", key);
 
@@ -372,7 +367,7 @@ public class PagedListDataModel<S extends BaseDataObject<T>, T extends BaseEntit
 
     if (key != null) {
       for (int index = 0; index < page.getData().size(); index++) {
-        if (page.getData().get(index).toEntity().getId().equals(key)) {
+        if (Integer.valueOf(page.getData().get(index).hashCode()).equals(key)) {
           setRowIndex(index);
           return;
         }

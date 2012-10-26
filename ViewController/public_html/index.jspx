@@ -23,8 +23,8 @@
                     partialTriggers="::search">
             <af:column sortProperty="employeeId" filterable="true"
                        sortable="true" headerText="EmployeeId">
-              <h:outputText value="#{row.employeeId}"/>-
-              <jsp:scriptlet>out.println(System.currentTimeMillis());</jsp:scriptlet>
+              <h:outputText value="#{row.employeeId}"/>
+              <!--jsp:scriptlet>out.println(System.currentTimeMillis());</jsp:scriptlet-->
             </af:column>
             <af:column sortProperty="firstName" filterable="true" sortable="true"
                        headerText="FirstName">
