@@ -6,6 +6,7 @@ import commonj.sdo.helper.TypeHelper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -17,6 +18,7 @@ import javax.swing.event.ChangeListener;
 import nl.amis.sdo.jpa.services.Service;
 
 import oracle.adf.view.rich.model.AttributeCriterion;
+import oracle.adf.view.rich.model.AttributeDescriptor;
 import oracle.adf.view.rich.model.ConjunctionCriterion;
 import oracle.adf.view.rich.model.Criterion;
 import oracle.adf.view.rich.model.FilterableQueryDescriptor;
@@ -240,34 +242,19 @@ public class PagedListDataModel<S> extends CollectionModel implements ChangeList
             (entry.getValue().toString().trim().length() > 0)) {
           final List<Object> value = new ArrayList<Object>(1);
           value.add(entry.getValue());
-          final ViewCriteriaItem viewCriteriaItem = toViewCriteriaItem(entry.getKey(), value, "like");
-          logger.log(Level.FINEST, "viewCriteriaItem: {0}", viewCriteriaItem);
-          item.add(viewCriteriaItem);
+          item.add(toViewCriteriaItem(entry.getKey(), value, Service.Operator.LIKE.getValue()));
         }
       }
     }
     
     System.out.println("currentCriterion: " + getFilterModel().getCurrentCriterion());
-    
-    /*if (!getFilterModel().getCurrentCriterion().getValues().isEmpty()) {
-      System.out.println(">>> value: " + getFilterModel().getCurrentCriterion().getValues().get(0));
-      if (getFilterModel().getCurrentCriterion().getValues().get(0).toString().trim().length() > 0)
-      {
-      final ViewCriteriaItem viewCriteriaItem = toViewCriteriaItem(getFilterModel().getCurrentCriterion());
-      System.out.println(">>> viewCriteriaItem: " + viewCriteriaItem);
-      logger.log(Level.FINEST, "viewCriteriaItem: {0}", viewCriteriaItem);
-      item.add(viewCriteriaItem);
-      }
-    }*/
 
     if (!getFilterModel().getConjunctionCriterion().getCriterionList().isEmpty()) {
       for (final Criterion criterion :
            getFilterModel().getConjunctionCriterion().getCriterionList()) {
-        final AttributeCriterion attributeCriterion = (AttributeCriterion)criterion;
-        if (String.valueOf(attributeCriterion.getValues().get(0)).trim().length() > 0) {
-          final ViewCriteriaItem viewCriteriaItem = toViewCriteriaItem(attributeCriterion);
-          System.out.println(">>> viewCriteriaItem: " + viewCriteriaItem);
-          logger.log(Level.FINEST, "viewCriteriaItem: {0}", viewCriteriaItem);
+        final ViewCriteriaItem viewCriteriaItem = toViewCriteriaItem((AttributeCriterion)criterion);
+        
+        if (viewCriteriaItem != null) {
           item.add(viewCriteriaItem);
         }
       }
@@ -278,7 +265,7 @@ public class PagedListDataModel<S> extends CollectionModel implements ChangeList
       findCriteria.getFilter().setGroup(new ArrayList(1));
       final ViewCriteriaRow viewCriteriaRow =
         (ViewCriteriaRow)DataFactory.INSTANCE.create(TypeHelper.INSTANCE.getType(ViewCriteriaRow.class));
-      viewCriteriaRow.setConjunction("And");
+      viewCriteriaRow.setConjunction(Service.Operator.AND.getValue());
       viewCriteriaRow.setUpperCaseCompare(true);
       viewCriteriaRow.setItem(item);
       findCriteria.getFilter().getGroup().add(viewCriteriaRow);
@@ -324,20 +311,66 @@ public class PagedListDataModel<S> extends CollectionModel implements ChangeList
   }
   
   protected ViewCriteriaItem toViewCriteriaItem(final AttributeCriterion criterion) {
-    return toViewCriteriaItem(criterion.getAttribute().getName(), criterion.getValues(), criterion.getOperator().toString());
+      return toViewCriteriaItem(criterion.getAttribute().getName(), criterion.getValues(), criterion.getOperator());
   }
   
-  protected ViewCriteriaItem toViewCriteriaItem(final String name, final List value, final String operator) {
-    final ViewCriteriaItem viewCriteriaItem =
-      (ViewCriteriaItem)DataFactory.INSTANCE.create(TypeHelper.INSTANCE.getType(ViewCriteriaItem.class));
-    //viewCriteriaItem.setConjunction("And");
-    viewCriteriaItem.setConjunction(getFilterModel().getConjunctionCriterion().getConjunction().equals(ConjunctionCriterion.Conjunction.AND) ? "And" : "Or");
-    viewCriteriaItem.setUpperCaseCompare(true);
-    viewCriteriaItem.setAttribute(name);
-    viewCriteriaItem.setOperator(operator);
-    viewCriteriaItem.setValue(value);
-    return viewCriteriaItem;
+  
+  protected ViewCriteriaItem toViewCriteriaItem(final String name, final List values, final Object operator) {
+    logger.log(Level.FINEST, "name: {0}", name);
+    logger.log(Level.FINEST, "values: {0}", values);
+    logger.log(Level.FINEST, "operator: {0}", operator);
+    
+    if (operator != null) {
+      final List value = new ArrayList(values);
+      final Iterator i = value.iterator();
+      while(i.hasNext()) {
+        if (String.valueOf(i.next()).trim().length() == 0) {
+          i.remove(); // clean up empty values
+        }
+      }
+      
+      logger.log(Level.FINEST, "empty: {0}", value.isEmpty());
+      
+      if (!value.isEmpty()) {
+        final ViewCriteriaItem viewCriteriaItem =
+          (ViewCriteriaItem)DataFactory.INSTANCE.create(TypeHelper.INSTANCE.getType(ViewCriteriaItem.class));
+        viewCriteriaItem.setConjunction(getFilterModel().getConjunctionCriterion().getConjunction().equals(ConjunctionCriterion.Conjunction.AND) ? Service.Operator.AND.getValue() : Service.Operator.OR.getValue());
+        viewCriteriaItem.setUpperCaseCompare(true);
+        viewCriteriaItem.setAttribute(name);
+        viewCriteriaItem.setOperator(String.valueOf(operator));
+        viewCriteriaItem.setValue(value);
+        return viewCriteriaItem;
+      }
+    }
+    
+    return null;
   }
+  
+  /*protected List getValue(final List values, final String operator) {
+    final List result = new ArrayList(values); // we have to make an internal copy, otherwhise wildcards will also be visible in frontend
+    
+    for (int index = 0; index < values.size(); index++) {
+      final Object value = values.get(index);
+      
+      logger.log(Level.FINEST, "value: {0}", value);
+      
+      if ((value != null) && (value.toString().trim().length() > 0)) {
+        if ("Starts With".equalsIgnoreCase(operator)) {
+          result.set(index, new StringBuilder().append(value).append("%").toString());
+        }
+        
+        if ("Ends With".equalsIgnoreCase(operator)) {
+          result.set(index, new StringBuilder("%").append(value).toString());
+        }
+        
+        if ("Like".equalsIgnoreCase(operator)) {
+          result.set(index, new StringBuilder("%").append(value).append("%").toString());
+        }
+      }
+    }
+    
+    return result;
+  }*/
 
   public String toString() {
     return new StringBuilder("pageSize=").append(pageSize).append("\n,rowIndex=").append(getRowIndex()).append("\n,rowCount=").append(getRowCount()).append("\n,page=").append((page !=

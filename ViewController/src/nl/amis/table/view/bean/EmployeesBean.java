@@ -36,18 +36,12 @@ public class EmployeesBean {
   private DataModel dataModel = null;
 
   public EmployeesBean() throws NamingException {
-    System.out.println("Tablebean initialized");
-
     final Hashtable env = new Hashtable();
     // WebLogic Server 10.x connection details
     env.put(Context.INITIAL_CONTEXT_FACTORY,
             "weblogic.jndi.WLInitialContextFactory");
-    env.put(Context.PROVIDER_URL, "t3://localhost:7001");
+    env.put(Context.PROVIDER_URL, "t3://pc100016989:7001");
     final Context context = new InitialContext(env);
-    System.out.println("context = " + context);
-
-    //oracle.adfinternal.view.faces.renderkit.rich.QueryRenderer d;
-    //SimpleSelectOneRenderer e;
     dataModel =
         new PagedListDataModel((Service)context.lookup("EjbSdoService-HrSessionEJB#nl.amis.sdo.jpa.services.HrSessionEJB"),
                                EmployeesSDO.class, 10);

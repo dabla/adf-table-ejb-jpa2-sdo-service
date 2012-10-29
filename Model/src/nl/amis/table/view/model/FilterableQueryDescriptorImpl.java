@@ -39,8 +39,6 @@ public class FilterableQueryDescriptorImpl<S> extends FilterableQueryDescriptor 
     @Override
     public Object put(final String key, final Object value) {
       changed.setValue(changed.booleanValue() || !value.equals(get(key)));
-      System.out.println("PUT: " + key + ", is: " + value + ", was:" + get(key) + ", changed: " + changed);
-      
       return super.put(key, value);
     }
   }

@@ -19,49 +19,68 @@ import javax.faces.convert.NumberConverter;
 import oracle.adf.view.rich.model.AttributeDescriptor;
 import oracle.adf.view.rich.model.ColumnDescriptor;
 
+import nl.amis.sdo.jpa.services.Service;
+
+
 public class AttributeDescriptorImpl extends ColumnDescriptor {
+  // oracle.jbo.common.JboCompOper (adfm.jar)
   private static final Set<AttributeDescriptor.Operator> BOOLEAN_OPERATORS =
     new HashSet<AttributeDescriptor.Operator>(3);
   {
-    BOOLEAN_OPERATORS.add(new OperatorImpl("Equals"));
-    BOOLEAN_OPERATORS.add(new OperatorImpl("Not Equals"));
+    BOOLEAN_OPERATORS.add(new OperatorImpl(Service.Operator.EQUALS));
+    BOOLEAN_OPERATORS.add(new OperatorImpl(Service.Operator.NOT_EQUALS));
   }
 
   private static final Set<AttributeDescriptor.Operator> DATE_NUMBER_OPERATORS =
     new HashSet<AttributeDescriptor.Operator>(8);
   {
-    DATE_NUMBER_OPERATORS.add(new OperatorImpl("Equals"));
-    DATE_NUMBER_OPERATORS.add(new OperatorImpl("Not Equals"));
-    DATE_NUMBER_OPERATORS.add(new OperatorImpl("Greater Than"));
-    DATE_NUMBER_OPERATORS.add(new OperatorImpl("Less Than"));
-    DATE_NUMBER_OPERATORS.add(new OperatorImpl("Greater Than Equals"));
-    DATE_NUMBER_OPERATORS.add(new OperatorImpl("Less Than Equals"));
-    DATE_NUMBER_OPERATORS.add(new OperatorImpl("Between"));
+    DATE_NUMBER_OPERATORS.add(new OperatorImpl(Service.Operator.EQUALS));
+    DATE_NUMBER_OPERATORS.add(new OperatorImpl(Service.Operator.NOT_EQUALS));
+    DATE_NUMBER_OPERATORS.add(new OperatorImpl(Service.Operator.GREATER_THAN));
+    DATE_NUMBER_OPERATORS.add(new OperatorImpl(Service.Operator.LESS_THAN));
+    DATE_NUMBER_OPERATORS.add(new OperatorImpl(Service.Operator.GREATER_THAN_EQUALS));
+    DATE_NUMBER_OPERATORS.add(new OperatorImpl(Service.Operator.LESS_THAN_EQUALS));
+    DATE_NUMBER_OPERATORS.add(new OperatorImpl(Service.Operator.BETWEEN));
+    DATE_NUMBER_OPERATORS.add(new OperatorImpl(Service.Operator.NOT_BETWEEN));
   }
 
   private static final Set<AttributeDescriptor.Operator> STRING_OPERATORS =
     new HashSet<AttributeDescriptor.Operator>(8);
   {
-    STRING_OPERATORS.add(new OperatorImpl("Equals"));
-    STRING_OPERATORS.add(new OperatorImpl("Not Equals"));
-    STRING_OPERATORS.add(new OperatorImpl("Like"));
-    STRING_OPERATORS.add(new OperatorImpl("Starts With"));
-    STRING_OPERATORS.add(new OperatorImpl("Ends  With"));
-    STRING_OPERATORS.add(new OperatorImpl("Contains"));
-    STRING_OPERATORS.add(new OperatorImpl("Does not Contain"));
+    STRING_OPERATORS.add(new OperatorImpl(Service.Operator.EQUALS));
+    STRING_OPERATORS.add(new OperatorImpl(Service.Operator.NOT_EQUALS));
+    STRING_OPERATORS.add(new OperatorImpl(Service.Operator.LIKE));
+    STRING_OPERATORS.add(new OperatorImpl(Service.Operator.STARTS_WITH));
+    STRING_OPERATORS.add(new OperatorImpl(Service.Operator.ENDS_WITH));
+    STRING_OPERATORS.add(new OperatorImpl(Service.Operator.CONTAINS));
+    STRING_OPERATORS.add(new OperatorImpl(Service.Operator.DOES_NOT_CONTAIN));
   }
+  
+  /*public static enum Operation {
+      EQUALS("Equals"), NOT_EQUALS("Not Equals"), LESS_THAN("Less Than"), GREATER_THAN("Greater Than"), LESS_THAN_EQUALS("Less Than Equals"), GREATER_THAN_EQUALS("Greater Than Equals"), LIKE("Like"), STARTS_WTIH("Starts With"), ENDS_WITH("Ends With"), BETWEEN("Between"), CONTAINS("Contains"), DOES_NOT_CONTAIN("Does not Contain");
+    
+      private final String value;
+              
+      Operation(final String value) {
+        this.value = value;
+      }
+      
+      public String toString() {
+        return value;
+      }
+  }*/
 
   public class OperatorImpl extends AttributeDescriptor.Operator {
-    private final String label;
+    private final Service.Operator operator;
     private final int operand;
-
-    public OperatorImpl(final String label) {
-      this.label = label;
+    
+    public OperatorImpl(final Service.Operator operator) {
+      this.operator = operator;
       
-      if ("Between".equals(label)) {
+      if (Service.Operator.BETWEEN.equals(operator)) {
         operand = 2;
       }
-      else if ("In".equals(label) || "Not In".equals(label)) {
+      else if (Service.Operator.CONTAINS.equals(operator) || Service.Operator.DOES_NOT_CONTAIN.equals(operator)) {
         operand = -1;
       }
       else {
@@ -70,24 +89,15 @@ public class AttributeDescriptorImpl extends ColumnDescriptor {
     }
 
     public String getLabel() {
-      return label;
+      return operator.getLabel();
     }
 
     public Object getValue() {
-      return null;
+      return operator.getValue();
     }
     
-    @Override
     public String toString() {
-      /*if ("Like".equalsIgnoreCase(getLabel())) return "like";
-      if ("Equals".equalsIgnoreCase(getLabel())) return "=";
-      if ("Not Equals".equalsIgnoreCase(getLabel())) return "<>";
-      if ("Greater Than".equalsIgnoreCase(getLabel())) return ">";
-      if ("Less Than".equalsIgnoreCase(getLabel())) return "<";
-      if ("Greater Than Equals".equalsIgnoreCase(getLabel())) return ">=";
-      if ("Less Than Equals".equalsIgnoreCase(getLabel())) return "<=";*/
-      //if ("Between".equalsIgnoreCase(getLabel())) return "><";
-      return "like";
+      return operator.getValue();
     }
 
     /**

@@ -17,15 +17,15 @@ public class AttributeCriterionImpl extends AttributeCriterion {
   private final List<? extends Object> values;
   private final AttributeDescriptor attributeDescriptor;
   private final Map<String,AttributeDescriptor.Operator> operators;
+  private final ObservableBoolean changed;
   private AttributeDescriptor.Operator operator = null;
   private RequiredType requiredType = RequiredType.OPTIONAL;
   private boolean matchCase = false;
   
   private final class ObservableArrayList extends ArrayList {
-    private final ObservableBoolean changed;
-    ObservableArrayList(final ObservableBoolean changed) {
+    ObservableArrayList() {
       super(1);
-      this.changed = changed;
+      add("");
       add("");
     }
     
@@ -37,7 +37,7 @@ public class AttributeCriterionImpl extends AttributeCriterion {
     
     @Override
     public Object set(final int index, Object value) {
-      if (value == null) value = ""; /*((value == null) && (get(index) != null)) ||*/
+      if (value == null) value = "";
       System.out.println(attributeDescriptor.getName() + "-SET: " + index + ", is: " + value + ", was:" + get(index) + ", changed: " + changed + " (" + !value.equals(get(index)) + ")");
       changed.setValue(changed.booleanValue() || !value.equals(get(index)));
       return super.set(index, value);
@@ -46,7 +46,8 @@ public class AttributeCriterionImpl extends AttributeCriterion {
 
   public AttributeCriterionImpl(final Property property, final ObservableBoolean changed) {
     super();
-    values = new ObservableArrayList(changed);
+    this.changed = changed;
+    values = new ObservableArrayList();
     attributeDescriptor = new AttributeDescriptorImpl(property);
     operators = new HashMap<String,AttributeDescriptor.Operator>(attributeDescriptor.getSupportedOperators().size());
     
@@ -75,37 +76,31 @@ public class AttributeCriterionImpl extends AttributeCriterion {
   }
 
   public void setOperator(final AttributeDescriptor.Operator operator) {
-    System.out.println("setOperator: " + operator);
     this.operator = operator;
+    changed.setValue((getValues().get(0) != null) && (getValues().get(0).toString().trim().length() > 0));
   }
   
   public AttributeDescriptor.Operator getOperator() {
-    System.out.println("getOperator: " + operator);
     return operator;
   }
 
   public boolean hasDependentCriterion(final int index) {
-    //System.out.println("hasDependentCriterion: " + index);
     return false;
   }
 
   public void setMatchCase(final boolean matchCase) {
-    //System.out.println("setMatchCase: " + matchCase);
     this.matchCase = matchCase;
   }
 
   public boolean getMatchCase() {
-    //System.out.println("getMatchCase: " + matchCase);
     return matchCase;
   }
 
   public void setRequiredType(final RequiredType requiredType) {
-    //System.out.println("setRequiredType: " + requiredType);
     this.requiredType = requiredType;
   }
 
   public RequiredType getRequiredType() {
-    //System.out.println("getRequiredType: " + requiredType);
     return requiredType;
   }
 }
