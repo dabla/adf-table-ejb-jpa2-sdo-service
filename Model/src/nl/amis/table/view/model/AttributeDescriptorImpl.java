@@ -77,7 +77,7 @@ public class AttributeDescriptorImpl extends ColumnDescriptor {
     public OperatorImpl(final Service.Operator operator) {
       this.operator = operator;
       
-      if (Service.Operator.BETWEEN.equals(operator)) {
+      if (Service.Operator.BETWEEN.equals(operator) || Service.Operator.NOT_BETWEEN.equals(operator)) {
         operand = 2;
       }
       else if (Service.Operator.CONTAINS.equals(operator) || Service.Operator.DOES_NOT_CONTAIN.equals(operator)) {
